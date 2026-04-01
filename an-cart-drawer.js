@@ -268,15 +268,7 @@ waitForJQuery(function($){
   dH +=     '<div id="anSum"></div>';
   dH +=     '<div class="anD-tot"><span>סה״כ</span><span id="anTot">₪0</span></div>';
   dH +=     '<button class="anD-go" id="anGo" type="button" disabled>המשך לקופה ←</button>';
-  dH +=     '<div class="anD-sec">🔒 הזמנה מאובטחת — SSL 256-bit</div>';
   dH +=     '<a class="anD-wa" id="anWa" href="#" target="_blank">לא בטוח? שלח לנו את העגלה בוואטסאפ</a>';
-  dH +=     '<a class="anD-cont" id="anCont" href="javascript:void(0)">← המשך בקניות</a>';
-  dH +=     '<div class="anD-tb">';
-  dH +=       '<div>🛡<span>מאובטח</span></div>';
-  dH +=       '<div>🚚<span>משלוח מהיר</span></div>';
-  dH +=       '<div>⭐<span>איכות מובטחת</span></div>';
-  dH +=       '<div>🎁<span>אחריות</span></div>';
-  dH +=     '</div>';
   dH +=   '</div>'; /* /anD-ft */
   dH += '</div>'; /* /anD */
   /* Social proof popup */
