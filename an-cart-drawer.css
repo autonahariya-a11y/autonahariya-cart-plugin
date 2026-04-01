@@ -119,13 +119,14 @@ div.cart.special_cart_with_upgrades{display:none!important;visibility:hidden!imp
 .anD-cs .csi button:hover{background:#28a745!important;color:#fff!important}
 .anD-cs .csi button.ad{background:#28a745!important;color:#fff!important;cursor:default!important}
 
-/* Social proof popup */
-.anSP{position:fixed!important;bottom:20px!important;left:20px!important;background:#fff!important;border-radius:12px!important;box-shadow:0 4px 20px rgba(0,0,0,.12)!important;padding:10px 14px!important;display:flex!important;align-items:center!important;gap:10px!important;z-index:9999996!important;transform:translateY(120%)!important;transition:transform .4s!important;direction:rtl!important;max-width:320px!important;font-family:'Segoe UI',Arial,sans-serif!important}
-.anSP.v{transform:translateY(0)!important}
-.anSP .av{width:32px!important;height:32px!important;background:#e9ecef!important;border-radius:50%!important;display:flex!important;align-items:center!important;justify-content:center!important;flex-shrink:0!important;font-size:16px!important}
-.anSP strong{display:block!important;font-size:12px!important;color:#212529!important}
-.anSP span{display:block!important;font-size:11px!important;color:#6c757d!important}
-.anSP .sx{position:absolute!important;top:4px!important;left:4px!important;background:none!important;border:none!important;color:#adb5bd!important;cursor:pointer!important;font-size:14px!important;line-height:1!important;padding:2px!important}
+/* Social proof popup — DESKTOP: centered bottom, larger */
+.anSP{position:fixed!important;bottom:30px!important;left:50%!important;transform:translate(-50%,120%)!important;background:#fff!important;border-radius:14px!important;box-shadow:0 8px 30px rgba(0,0,0,.15)!important;padding:14px 22px 14px 40px!important;display:flex!important;align-items:center!important;gap:14px!important;z-index:9999996!important;transition:transform .5s cubic-bezier(.4,0,.2,1)!important;direction:rtl!important;max-width:440px!important;width:auto!important;font-family:'Segoe UI',Arial,sans-serif!important;border:1px solid #e9ecef!important}
+.anSP.v{transform:translate(-50%,0)!important}
+.anSP .av{width:40px!important;height:40px!important;background:linear-gradient(135deg,#e8f5e9,#c8e6c9)!important;border-radius:50%!important;display:flex!important;align-items:center!important;justify-content:center!important;flex-shrink:0!important;font-size:20px!important}
+.anSP strong{display:block!important;font-size:14px!important;color:#212529!important;margin-bottom:2px!important}
+.anSP span{display:block!important;font-size:13px!important;color:#6c757d!important}
+.anSP .sx{position:absolute!important;top:6px!important;left:8px!important;background:none!important;border:none!important;color:#adb5bd!important;cursor:pointer!important;font-size:16px!important;line-height:1!important;padding:4px!important}
+.anSP .sx:hover{color:#495057!important}
 
 /* ===================================================================
    MOBILE — max-width: 768px
@@ -134,5 +135,10 @@ div.cart.special_cart_with_upgrades{display:none!important;visibility:hidden!imp
   .anD{width:100%!important;padding-bottom:env(safe-area-inset-bottom, 0)!important}
   /* Extra padding for GoMobile bottom toolbar */
   .anD-ft{padding-bottom:80px!important}
-  .anSP{left:10px!important;right:10px!important;max-width:none!important;bottom:70px!important}
+  /* Mobile: top center, not bottom — avoids WhatsApp + accessibility buttons */
+  .anSP{bottom:auto!important;top:80px!important;left:50%!important;right:auto!important;transform:translate(-50%,-120%)!important;max-width:calc(100% - 24px)!important;padding:10px 16px 10px 34px!important;box-shadow:0 4px 16px rgba(0,0,0,.12)!important}
+  .anSP.v{transform:translate(-50%,0)!important}
+  .anSP .av{width:34px!important;height:34px!important;font-size:17px!important}
+  .anSP strong{font-size:13px!important}
+  .anSP span{font-size:12px!important}
 }
