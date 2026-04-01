@@ -13,6 +13,7 @@ var SHIP   = 400;
 var SCOST  = 30;
 var PHONE  = '97249517322';
 var CK     = 'an_cart_v4';
+var DK     = 'an_cart_del';
 var TE_KEY = 'an_te';
 var TIMER_DURATION = 899000; // ~15 min
 
@@ -99,6 +100,9 @@ function load(){
 }
 function save(c){ sessionStorage.setItem(CK, JSON.stringify(c)); }
 function fp(n){ return '\u20aa' + Math.round(n); }
+function getDeleted(){try{return JSON.parse(sessionStorage.getItem(DK))||{}}catch(e){return{}}}
+function markDeleted(id){var d=getDeleted();d[id]=1;sessionStorage.setItem(DK,JSON.stringify(d))}
+function isDeleted(id){return !!getDeleted()[id]}
 
 /* =====================================================================
    WAIT FOR jQuery — init only after $ is available
@@ -307,7 +311,7 @@ waitForJQuery(function($){
         try {
           $('<table>' + jh + '</table>').find('tr[data-id]').each(function(){
             var $r = $(this), rid = $r.attr('data-id');
-            if(cart[rid]) return;
+            if(cart[rid] || isDeleted(rid)) return;
             var t = $.trim($r.find('td.title a').text()).replace(/^\u200f/, '');
             var p = parseFloat(($r.find('td.price_item_x').text()||'0').replace(/[^\d.]/g,'')) || 0;
             var q = parseInt($r.find('div.quantity').text()) || 1;
@@ -325,7 +329,7 @@ waitForJQuery(function($){
     /* Sync from #main_cart DOM */
     $('#main_cart tr[data-id]').each(function(){
       var $r = $(this), rid = $r.attr('data-id');
-      if(cart[rid]) return;
+      if(cart[rid] || isDeleted(rid)) return;
       var t = $.trim($r.find('td.title a').text()).replace(/^\u200f/, '');
       var p = parseFloat(($r.find('td.price_item_x').text()||'0').replace(/[^\d.]/g,'')) || 0;
       var q = parseInt($r.find('div.quantity').text()) || 1;
@@ -458,6 +462,20 @@ waitForJQuery(function($){
      ---------------------------------------------------------------- */
   function doDelete(id, triggerEl){
     if(!id) return;
+    /* Mark as deleted so refresh won't re-add from jStorage */
+    markDeleted(id);
+    /* Also remove from jStorage and #main_cart DOM */
+    try{
+      if(typeof $.jStorage!=='undefined'){
+        var jh=$.jStorage.get('cart_autonahariya');
+        if(jh&&typeof jh==='string'){
+          var $t=$('<table>'+jh+'</table>');
+          $t.find('tr[data-id="'+id+'"]').remove();
+          $.jStorage.set('cart_autonahariya',$t.html());
+        }
+      }
+      $('#main_cart tr[data-id="'+id+'"]').remove();
+    }catch(e){}
     /* Animate row out */
     var $row = $(triggerEl).closest('.anD-it');
     if(!$row.length) $row = $('[data-iid="' + id + '"]');
