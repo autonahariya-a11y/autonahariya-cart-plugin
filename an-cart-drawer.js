@@ -10,17 +10,22 @@
    CONFIG
    ===================================================================== */
 var SHIP   = 400;
-var SCOST  = 30;
+var SCOST  = 35;
 var PHONE  = '97249517322';
 var CK     = 'an_cart_v4';
 var DK     = 'an_cart_del';
 var TE_KEY = 'an_te';
 var TIMER_DURATION = 899000; // ~15 min
 
+/*
+ * מוצרי Cross-sell — "לקוחות שקנו גם רכשו"
+ * לשנות מוצרים: ערוך את הרשימה למטה. לכל מוצר יש שם (n), מחיר (p), ותמונה (i).
+ * התמונה חייבת להיות URL מלא. אם אין תמונה, המוצר יופיע בלי תמונה.
+ */
 var CS = [
-  {n:'ספריי ניקוי בלמים', p:29},
-  {n:'מפתח פילטר שמן',     p:49},
-  {n:'נוזל קירור ירוק 1L', p:35}
+  {n:'ספריי ניקוי בלמים', p:29, i:'https://d3m9l0v76dty0.cloudfront.net/system/photos/18903505/small/86b8ce9dcff6073f2a5f59e21afc22b4.webp'},
+  {n:'מפתח פילטר שמן',     p:49, i:'https://d3m9l0v76dty0.cloudfront.net/system/photos/6200932/small/879293283990c86b4ce659fa7c3802d5.jpg'},
+  {n:'נוזל קירור ירוק 1L', p:35, i:'https://d3m9l0v76dty0.cloudfront.net/system/photos/5948655/small/a3e3f9e47091511024276b3cbce1b759.jpg'}
 ];
 
 /* 50 real product names for social proof */
@@ -261,6 +266,7 @@ waitForJQuery(function($){
   dH +=       '<div class="csc">';
   for(var ci=0; ci<CS.length; ci++){
     dH += '<div class="csi">';
+    if(CS[ci].i){dH += '<img class="csi-img" src="'+CS[ci].i+'" alt="'+CS[ci].n+'" onerror="this.style.display=\'none\'">'}
     dH +=   '<div class="csn">' + CS[ci].n + '</div>';
     dH +=   '<div class="csp">' + fp(CS[ci].p) + '</div>';
     dH +=   '<button class="csa" type="button" data-ci="' + ci + '">+ הוסף</button>';

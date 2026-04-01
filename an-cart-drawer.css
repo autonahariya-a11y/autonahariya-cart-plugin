@@ -112,6 +112,7 @@ div.cart.special_cart_with_upgrades{display:none!important;visibility:hidden!imp
 .anD-cs .cst{font-size:14px!important;font-weight:700!important;color:#343a40!important;margin-bottom:10px!important}
 .anD-cs .csc{display:flex!important;gap:8px!important;overflow-x:auto!important;padding-bottom:4px!important;-webkit-overflow-scrolling:touch!important}
 .anD-cs .csi{min-width:120px!important;background:#fff!important;border:1px solid #e9ecef!important;border-radius:8px!important;padding:10px!important;text-align:center!important;flex-shrink:0!important}
+.anD-cs .csi-img{width:100%!important;height:60px!important;object-fit:contain!important;border-radius:4px!important;margin-bottom:6px!important;display:block!important;background:#f8f9fa!important}
 .anD-cs .csi .csn{font-size:13px!important;font-weight:600!important;margin-bottom:4px!important;color:#343a40!important}
 .anD-cs .csi .csp{font-size:14px!important;font-weight:700!important;color:#28a745!important;margin-bottom:6px!important}
 .anD-cs .csi button{width:100%!important;background:#fff!important;border:1.5px solid #28a745!important;color:#28a745!important;border-radius:6px!important;padding:5px!important;font-size:11px!important;font-weight:700!important;cursor:pointer!important}
