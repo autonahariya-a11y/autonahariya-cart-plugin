@@ -127,7 +127,8 @@ function updateBadge(){
   /* Update ALL possible badge selectors Konimbo uses */
   var badges = document.querySelectorAll(
     'span.cart_with_items_counter, .cart_count, #cart_count, ' +
-    '.header-cart-count, span[class*="cart_counter"]'
+    '.header-cart-count, span[class*="cart_counter"], ' +
+    '.nah-cart-badge, #anCnt'
   );
   for(var i=0; i<badges.length; i++){
     badges[i].textContent = cnt;
@@ -150,7 +151,11 @@ function attachCartIconCapture(openFn){
     'ul#header_cart_nav a.cart',
     'a.cart[href*="konimbo"]',
     'a.cart[href*="orders"]',
-    '#link_order_with_counter'
+    '#link_order_with_counter',
+    /* Mobile: nah-bar custom cart icon */
+    '.nah-icon.nah-ct',
+    '.nah-ct',
+    'a.nah-ct'
   ];
 
   var attached = {};
@@ -335,7 +340,7 @@ waitForJQuery(function($){
 
     /* Update counter in drawer and ALL header badges */
     $('#anCnt').text(cnt);
-    $('span.cart_with_items_counter, .cart_count, #cart_count').text(cnt);
+    $('span.cart_with_items_counter, .cart_count, #cart_count, .nah-cart-badge').text(cnt);
     updateBadge();
 
     /* Build item list HTML */
