@@ -71,7 +71,7 @@ function refresh(){
       h+='<span class="qv">'+it.q+'</span>';
       h+='<button class="qb an-plus" data-iid="'+it.id+'">+</button>';
       h+='</div><span class="pr">'+fp(it.p*it.q)+'</span></div></div>';
-      h+='<button class="an-del" data-iid="'+it.id+'">'+svg.trash+'</button>';
+      h+='<button class="an-del" data-iid="'+it.id+'" onclick="return false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button>';
       h+='</div>';
     }
     h+='</div>';$l.html(h);$('#anGo').prop('disabled',false);
@@ -169,13 +169,14 @@ $(document).on('click','.an-minus',function(e){
   if(c[id]&&c[id].q>1){c[id].q--;save(c);refresh()}
 });
 
-// === DELETE — using data-iid attribute with attr() not data() ===
-$(document).on('click','.an-del',function(e){
-  e.preventDefault();e.stopPropagation();
-  var id=$(this).attr('data-iid');
+// === DELETE ===
+$(document).on('click','.an-del, .an-del *',function(e){
+  e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();
+  var $btn=$(this).closest('.an-del');
+  var id=$btn.attr('data-iid');
   if(!id)return;
-  // Animate out
-  $(this).closest('.anD-it').css({transition:'all 0.3s ease',opacity:0,transform:'translateX(-30px)'});
+  var $row=$btn.closest('.anD-it');
+  $row.css({transition:'all 0.3s ease',opacity:0,transform:'translateX(-30px)'});
   setTimeout(function(){
     var c=load();
     delete c[id];
