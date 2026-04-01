@@ -116,15 +116,37 @@ $(document).on('click','.dl',function(e){
   },450);
 });
 
-// === CHECKOUT — fixed ===
+// === CHECKOUT — sync with Konimbo then submit ===
 $(document).on('click','#anGo',function(e){
   e.preventDefault();
   var c=load();
   if(!Object.keys(c).length)return;
-  anClose();
-  setTimeout(function(){
-    window.location.href='https://secure.konimbo.co.il/orders/autonahariya/new';
-  },300);
+  // Build Konimbo cart HTML rows and inject into #main_cart
+  var rows='';
+  for(var k in c){
+    if(!c.hasOwnProperty(k))continue;
+    var it=c[k],rawId=k;// e.g. item_id_1234
+    rows+='<tr data-id="'+rawId+'"><td><div class="quantity_step_value_in_cart">'+it.q+'</div><div class="quantity">'+it.q+'</div></td><td class="img_item"><img src="'+(it.i||'')+'"></td><td class="title"><a href="'+(it.u||'#')+'">'+it.t+'</a></td><td class="delete_btn"><a></a></td><td class="price_item_x">'+it.p+' ₪</td></tr>';
+  }
+  // Write to jStorage
+  if(typeof $.jStorage!=='undefined'){$.jStorage.set('cart_autonahariya',rows)}
+  // Also inject into #main_cart DOM
+  $('#main_cart').html('<table><tbody>'+rows+'</tbody></table>');
+  // Call Konimbo's set_cart_content to serialize
+  if(typeof set_cart_content==='function'){set_cart_content()}
+  // Set cart_content hidden field and submit form
+  var $form=$('form#flying_cart');
+  if($form.length&&typeof window.finish_cart_details!=='undefined'){
+    $form.find('#cart_content').val(window.finish_cart_details).attr('name','cart_content_with_upgrades');
+    $form.find('#referer_url').val(location.href);
+    $form.find('#request_url').val(location.href);
+    anClose();
+    setTimeout(function(){$form.submit()},200);
+  }else{
+    // Fallback — direct redirect
+    anClose();
+    setTimeout(function(){window.location.href='https://secure.konimbo.co.il/orders/autonahariya/new'},300);
+  }
 });
 
 // === CROSS-SELL ===
@@ -142,6 +164,21 @@ var TMS=['ממש עכשיו','לפני דקה','לפני 2 דקות','לפני 3
 function sp(){$('#anSN').text('מישהו מ'+CT[Math.floor(Math.random()*CT.length)]);$('#anSP2').text('רכש '+RP[Math.floor(Math.random()*RP.length)]+' '+TMS[Math.floor(Math.random()*TMS.length)]);$('#anSP').addClass('v');clearTimeout(window._spt);window._spt=setTimeout(function(){$('#anSP').removeClass('v')},5000)}
 setTimeout(function(){sp();setInterval(sp,25000)},8000);
 $('#anSX').on('click',function(){$('#anSP').removeClass('v')});
+// === SYNC from Konimbo jStorage on page load ===
+function syncFromKonimbo(){
+  if(typeof $.jStorage==='undefined')return;
+  var jh=$.jStorage.get('cart_autonahariya');
+  if(!jh)return;
+  var c=load();
+  $('<table>'+jh+'</table>').find('tr[data-id]').each(function(){
+    var $r=$(this),rid=$r.attr('data-id');
+    if(c[rid])return;
+    var t=$r.find('td.title a').text().trim().replace(/^\u200f/,''),p=parseFloat($r.find('td.price_item_x').text().replace(/[^\d.]/g,''))||0,q=parseInt($r.find('div.quantity').text())||1,i=$r.find('img').attr('src')||'';
+    if(t)c[rid]={t:t,p:p,q:q,i:i,u:$r.find('td.title a').attr('href')||'#'};
+  });
+  save(c);
+}
+syncFromKonimbo();
 // Init
 refresh();
 });
