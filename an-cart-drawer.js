@@ -680,42 +680,53 @@ waitForJQuery(function($){
     var rows = buildKonimboRows(c);
 
     /* 1. Sync to jStorage */
-    if(typeof $.jStorage !== 'undefined'){
-      $.jStorage.set('cart_autonahariya', rows);
-    }
+    try{
+      if(typeof $.jStorage !== 'undefined'){
+        $.jStorage.set('cart_autonahariya', rows);
+      }
+    }catch(ex){}
 
-    /* 2. Ensure #main_cart exists and inject rows */
-    var $mc = $('#main_cart');
+    /* 2. Temporarily show old cart so set_cart_content can read it */
+    var $oldCart = $('div.cart.special_cart_with_upgrades');
+    $oldCart.css({display:'block',visibility:'visible',position:'absolute',left:'-9999px',opacity:0});
+
+    /* 3. Inject rows into the REAL #main_cart inside div.cart */
+    var $mc = $oldCart.find('#main_cart');
+    if(!$mc.length) $mc = $('#main_cart');
     if(!$mc.length){
-      $mc = $('<div id="main_cart" style="display:none"></div>');
-      $('body').append($mc);
+      $mc = $('<div id="main_cart"></div>');
+      $oldCart.append($mc);
     }
     $mc.html('<table><tbody>' + rows + '</tbody></table>');
 
-    /* 3. Call Konimbo set_cart_content() to serialize */
-    if(typeof window.set_cart_content === 'function'){
-      window.set_cart_content();
+    /* 4. Build cart_content string manually (Konimbo format: item_id_XXX=>QTY•) */
+    var cartDetails = '';
+    for(var ck in c){
+      if(!c.hasOwnProperty(ck)) continue;
+      cartDetails += ck + '=>' + (c[ck].q||1) + '\u2022';
     }
+    var encoded = encodeURI(cartDetails);
 
-    /* 4. Submit form#flying_cart if present, else redirect */
+    /* 5. Also try Konimbo's own function */
+    try{
+      if(typeof window.set_cart_content === 'function'){
+        window.set_cart_content();
+        if(window.finish_cart_details) encoded = window.finish_cart_details;
+      }
+    }catch(ex){}
+
+    /* 6. Submit form */
     var $form = $('form#flying_cart');
     if($form.length){
-      /* Populate cart_content if not already done by set_cart_content */
-      var cc = $form.find('#cart_content');
-      if(cc.length && !cc.val()){
-        /* Build simple serialized cart as fallback */
-        var cartStr = '';
-        for(var ck in c){
-          if(!c.hasOwnProperty(ck)) continue;
-          cartStr += ck + ':' + (c[ck].q||1) + ';';
-        }
-        cc.val(cartStr);
-      }
+      $form.find('#cart_content').val(encoded).attr('name','cart_content_with_upgrades');
       $form.find('#referer_url').val(location.href);
       $form.find('#request_url').val(location.href);
       anClose();
+      /* Re-hide old cart */
+      $oldCart.css({display:'none',visibility:'hidden',position:'',left:'',opacity:''});
       setTimeout(function(){ $form.submit(); }, 100);
     } else {
+      $oldCart.css({display:'none',visibility:'hidden',position:'',left:'',opacity:''});
       anClose();
       window.location.href = 'https://secure.konimbo.co.il/orders/autonahariya/new';
     }
