@@ -19,14 +19,30 @@ var TIMER_DURATION = 899000; // ~15 min
 
 /*
  * מוצרי Cross-sell — "לקוחות שקנו גם רכשו"
- * לשנות מוצרים: ערוך את הרשימה למטה. לכל מוצר יש שם (n), מחיר (p), ותמונה (i).
- * התמונה חייבת להיות URL מלא. אם אין תמונה, המוצר יופיע בלי תמונה.
+ * התוסף קורא מוצרים מ-HTML בדף (#an-cs-config).
+ * אם אין HTML, משתמש בברירת מחדל למטה.
  */
-var CS = [
+var CS_DEFAULT = [
   {n:'ספריי ניקוי בלמים', p:29, i:'https://d3m9l0v76dty0.cloudfront.net/system/photos/18903505/small/86b8ce9dcff6073f2a5f59e21afc22b4.webp'},
   {n:'מפתח פילטר שמן',     p:49, i:'https://d3m9l0v76dty0.cloudfront.net/system/photos/6200932/small/879293283990c86b4ce659fa7c3802d5.jpg'},
   {n:'נוזל קירור ירוק 1L', p:35, i:'https://d3m9l0v76dty0.cloudfront.net/system/photos/5948655/small/a3e3f9e47091511024276b3cbce1b759.jpg'}
 ];
+/* Read cross-sell from HTML config block if present */
+var CS = (function(){
+  var el = document.getElementById('an-cs-config');
+  if(!el) return CS_DEFAULT;
+  var items = el.querySelectorAll('[data-name]');
+  if(!items.length) return CS_DEFAULT;
+  var arr = [];
+  for(var i=0; i<items.length; i++){
+    arr.push({
+      n: items[i].getAttribute('data-name') || '',
+      p: parseFloat(items[i].getAttribute('data-price')) || 0,
+      i: items[i].getAttribute('data-img') || ''
+    });
+  }
+  return arr;
+})();
 
 /* 50 real product names for social proof */
 var RP = [
