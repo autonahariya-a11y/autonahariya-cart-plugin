@@ -511,6 +511,11 @@ waitForJQuery(function($){
       delete c[id];
       save(c);
       refresh();
+      /* Reset cross-sell button if this was a CS item */
+      if(id.indexOf('cs_') === 0){
+        var csIdx = id.replace('cs_','');
+        $('.csa[data-ci="'+csIdx+'"]').text('+ \u05d4\u05d5\u05e1\u05e3').removeClass('ad').prop('disabled',false);
+      }
     }, 350);
   }
 
@@ -765,7 +770,7 @@ waitForJQuery(function($){
     var id = 'cs_' + idx;
     var c = load();
     if(c[id]){ c[id].q++; }
-    else { c[id] = {t:p.n, p:p.p, q:1, i:'', u:'#'}; }
+    else { c[id] = {t:p.n, p:p.p, q:1, i:p.i||'', u:p.u||'#'}; }
     save(c);
     $(this).text('✓ נוסף!').addClass('ad');
     refresh();
