@@ -19,29 +19,33 @@ var TIMER_DURATION = 899000; // ~15 min
 
 /*
  * מוצרי Cross-sell — "לקוחות שקנו גם רכשו"
- * התוסף קורא מוצרים מ-HTML בדף (#an-cs-config).
- * אם אין HTML, משתמש בברירת מחדל למטה.
+ * אפשרות א: רק URL של מוצר (data-url) — התוסף ישלוף שם/מחיר/תמונה אוטומטית
+ * אפשרות ב: שם+מחיר+תמונה ידנית (data-name, data-price, data-img)
  */
 var CS_DEFAULT = [
-  {n:'ספריי ניקוי בלמים', p:29, i:'https://d3m9l0v76dty0.cloudfront.net/system/photos/18903505/small/86b8ce9dcff6073f2a5f59e21afc22b4.webp'},
-  {n:'מפתח פילטר שמן',     p:49, i:'https://d3m9l0v76dty0.cloudfront.net/system/photos/6200932/small/879293283990c86b4ce659fa7c3802d5.jpg'},
-  {n:'נוזל קירור ירוק 1L', p:35, i:'https://d3m9l0v76dty0.cloudfront.net/system/photos/5948655/small/a3e3f9e47091511024276b3cbce1b759.jpg'}
+  {n:'ספריי ניקוי בלמים', p:29, i:''},
+  {n:'מפתח פילטר שמן',     p:49, i:''},
+  {n:'נוזל קירור ירוק 1L', p:35, i:''}
 ];
-/* Read cross-sell from HTML config block if present */
+
+/* Read cross-sell config from HTML — supports data-url (auto) or data-name (manual) */
+var CS_URLS = []; /* URLs to fetch */
 var CS = (function(){
   var el = document.getElementById('an-cs-config');
   if(!el) return CS_DEFAULT;
-  var items = el.querySelectorAll('[data-name]');
-  if(!items.length) return CS_DEFAULT;
-  var arr = [];
-  for(var i=0; i<items.length; i++){
-    arr.push({
-      n: items[i].getAttribute('data-name') || '',
-      p: parseFloat(items[i].getAttribute('data-price')) || 0,
-      i: items[i].getAttribute('data-img') || ''
-    });
+  var divs = el.querySelectorAll('div');
+  if(!divs.length) return CS_DEFAULT;
+  var manual = [], urls = [];
+  for(var i=0; i<divs.length; i++){
+    var d = divs[i];
+    if(d.getAttribute('data-url')){
+      urls.push(d.getAttribute('data-url'));
+    } else if(d.getAttribute('data-name')){
+      manual.push({n:d.getAttribute('data-name')||'',p:parseFloat(d.getAttribute('data-price'))||0,i:d.getAttribute('data-img')||''});
+    }
   }
-  return arr;
+  if(urls.length){ CS_URLS = urls; return []; /* will be filled async */ }
+  return manual.length ? manual : CS_DEFAULT;
 })();
 
 /* 50 real product names for social proof */
@@ -812,6 +816,66 @@ waitForJQuery(function($){
      Badge is already updated above, now also update drawer counter
      ---------------------------------------------------------------- */
   refresh();
+
+  /* ----------------------------------------------------------------
+     CROSS-SELL: AUTO-FETCH from product URLs
+     If CS_URLS has URLs, fetch each product page and extract details
+     ---------------------------------------------------------------- */
+  if(CS_URLS.length){
+    var fetched = [];
+    var done = 0;
+    var total = CS_URLS.length;
+    CS_URLS.forEach(function(url, idx){
+      $.ajax({
+        url: url,
+        dataType: 'html',
+        timeout: 8000,
+        success: function(html){
+          var $page = $('<div>').html(html);
+          var title = $.trim($page.find('h1 span').first().text()).replace(/^\u200f/,'') ||
+                      $.trim($page.find('#item_current_title').text()) ||
+                      $.trim($page.find('h1').first().text()) || 'מוצר';
+          var pEl = $page.find('#item_show_price .price_value').first();
+          var price = 0;
+          if(pEl.length){ price = parseFloat(pEl.attr('content') || pEl.text().replace(/[^\d.]/g,'')) || 0; }
+          if(!price){ price = parseFloat($page.find('.price_value').first().text().replace(/[^\d.]/g,'')) || 0; }
+          var img = $page.find('#lightSlider img, .swiper-slide img, .main_image img').first().attr('src') || '';
+          if(img && img.indexOf('//')==0) img = 'https:' + img;
+          var itemId = $page.find('input[name="item_id"]').val() || '';
+          fetched[idx] = {n:title, p:price, i:img, u:url, itemId:itemId};
+        },
+        error: function(){
+          fetched[idx] = null;
+        },
+        complete: function(){
+          done++;
+          if(done >= total){
+            /* All fetched — rebuild cross-sell */
+            CS = [];
+            for(var f=0; f<fetched.length; f++){
+              if(fetched[f]) CS.push(fetched[f]);
+            }
+            if(!CS.length) CS = CS_DEFAULT;
+            rebuildCrossSell();
+          }
+        }
+      });
+    });
+  }
+
+  function rebuildCrossSell(){
+    var h = '<div class="anD-cs"><div class="cst">\u05dc\u05e7\u05d5\u05d7\u05d5\u05ea \u05e9\u05e7\u05e0\u05d5 \u05d2\u05dd \u05e8\u05db\u05e9\u05d5:</div><div class="csc">';
+    for(var i=0; i<CS.length; i++){
+      h += '<div class="csi">';
+      if(CS[i].i){ h += '<img class="csi-img" src="'+CS[i].i+'" alt="'+CS[i].n+'" onerror="this.style.display=\'none\'">'; }
+      h += '<div class="csn">'+CS[i].n+'</div>';
+      h += '<div class="csp">'+fp(CS[i].p)+'</div>';
+      h += '<button class="csa" type="button" data-ci="'+i+'">+ \u05d4\u05d5\u05e1\u05e3</button>';
+      h += '</div>';
+    }
+    h += '</div></div>';
+    $('.anD-cs').replaceWith(h);
+  }
 
 }); /* end waitForJQuery */
 
