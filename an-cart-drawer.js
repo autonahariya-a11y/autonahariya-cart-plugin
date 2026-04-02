@@ -183,11 +183,11 @@ function attachCartIconCapture(openFn){
     'a.nah-ct'
   ];
 
-  var attached = {};
+  var attachedSet = [];
 
   function attachToEl(el){
-    if(!el || attached[el]) return;
-    attached[el] = true;
+    if(!el || attachedSet.indexOf(el) !== -1) return;
+    attachedSet.push(el);
 
     /* Remove ALL existing handlers and attributes */
     if(el.tagName === 'A'){
