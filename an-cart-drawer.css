@@ -135,10 +135,10 @@ div.cart.special_cart_with_upgrades{display:none!important;visibility:hidden!imp
   .anD{width:100%!important;padding-bottom:env(safe-area-inset-bottom, 0)!important}
   /* Extra padding for GoMobile bottom toolbar */
   .anD-ft{padding-bottom:80px!important}
-  /* Mobile: top center, not bottom — avoids WhatsApp + accessibility buttons */
-  .anSP{bottom:auto!important;top:80px!important;left:50%!important;right:auto!important;transform:translate(-50%,-120%)!important;max-width:calc(100% - 24px)!important;padding:10px 16px 10px 34px!important;box-shadow:0 4px 16px rgba(0,0,0,.12)!important}
+  /* Mobile: bottom-center, above WA/a11y buttons */
+  .anSP{bottom:140px!important;top:auto!important;left:50%!important;right:auto!important;transform:translate(-50%,120%)!important;max-width:calc(100% - 40px)!important;padding:8px 14px 8px 30px!important;box-shadow:0 2px 12px rgba(0,0,0,.1)!important;border-radius:10px!important;opacity:.92!important}
   .anSP.v{transform:translate(-50%,0)!important}
-  .anSP .av{width:34px!important;height:34px!important;font-size:17px!important}
-  .anSP strong{font-size:13px!important}
-  .anSP span{font-size:12px!important}
+  .anSP .av{width:30px!important;height:30px!important;font-size:15px!important}
+  .anSP strong{font-size:12px!important}
+  .anSP span{font-size:11px!important}
 }

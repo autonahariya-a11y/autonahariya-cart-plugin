@@ -185,10 +185,13 @@ function attachCartIconCapture(openFn){
     if(!el || attached[el]) return;
     attached[el] = true;
 
-    /* Set href to void to prevent navigation */
+    /* Remove ALL existing handlers and attributes */
     if(el.tagName === 'A'){
       el.setAttribute('href', 'javascript:void(0)');
     }
+    el.removeAttribute('onclick');
+    el.onclick = null;
+    try { $(el).off('click'); } catch(ex){}
 
     /* Capture phase — fires BEFORE any bubbling jQuery handlers */
     el.addEventListener('click', function(e){
@@ -586,9 +589,24 @@ waitForJQuery(function($){
     save(c);
   }
 
+  var isMobile = window.innerWidth <= 768;
+
+  /* Small "added to cart" confirmation toast */
+  $('body').append('<div id="anAdded" style="position:fixed;top:12px;left:50%;transform:translate(-50%,-80px);background:#28a745;color:#fff;padding:10px 22px;border-radius:10px;font-size:14px;font-weight:600;z-index:10000001;transition:transform .4s cubic-bezier(.4,0,.2,1);direction:rtl;font-family:inherit;box-shadow:0 4px 15px rgba(40,167,69,.3);">\u2713 \u05e0\u05d5\u05e1\u05e3 \u05dc\u05e2\u05d2\u05dc\u05d4</div>');
+  function showAddedToast(){
+    $('#anAdded').css('transform','translate(-50%,0)');
+    setTimeout(function(){$('#anAdded').css('transform','translate(-50%,-80px)')},2200);
+  }
+
   function afterAdd(){
     addFromPage();
-    setTimeout(anOpen, 400);
+    if(isMobile){
+      /* Mobile: just update badge + show small toast, don't open drawer */
+      setTimeout(function(){ refresh(); updateBadge(); showAddedToast(); }, 400);
+    } else {
+      /* Desktop: open the drawer */
+      setTimeout(anOpen, 400);
+    }
     setTimeout(refresh, 1000);
   }
 
