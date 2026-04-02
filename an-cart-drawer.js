@@ -516,6 +516,8 @@ waitForJQuery(function($){
         var csIdx = id.replace('cs_','');
         $('.csa[data-ci="'+csIdx+'"]').text('+ \u05d4\u05d5\u05e1\u05e3').removeClass('ad').prop('disabled',false);
       }
+      /* Also reset by real item_id (for auto-fetched cross-sell) */
+      $('.csa[data-real-id="'+id+'"]').text('+ \u05d4\u05d5\u05e1\u05e3').removeClass('ad').prop('disabled',false);
     }, 350);
   }
 
@@ -767,12 +769,13 @@ waitForJQuery(function($){
     var idx = parseInt($(this).attr('data-ci'), 10);
     var p = CS[idx];
     if(!p) return;
-    var id = 'cs_' + idx;
+    /* Use real Konimbo item_id if available (from auto-fetch), otherwise cs_ fallback */
+    var id = p.itemId ? ('item_id_' + p.itemId) : ('cs_' + idx);
     var c = load();
     if(c[id]){ c[id].q++; }
     else { c[id] = {t:p.n, p:p.p, q:1, i:p.i||'', u:p.u||'#'}; }
     save(c);
-    $(this).text('✓ נוסף!').addClass('ad');
+    $(this).text('✓ נוסף!').addClass('ad').attr('data-real-id', id);
     refresh();
   });
 

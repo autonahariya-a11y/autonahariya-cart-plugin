@@ -135,9 +135,9 @@ div.cart.special_cart_with_upgrades{display:none!important;visibility:hidden!imp
   .anD{width:100%!important;padding-bottom:env(safe-area-inset-bottom, 0)!important}
   /* Extra padding for GoMobile bottom toolbar */
   .anD-ft{padding-bottom:80px!important}
-  /* Mobile: aligned with WA/a11y buttons height */
-  .anSP{bottom:70px!important;top:auto!important;left:60px!important;right:12px!important;transform:translateY(30px)!important;max-width:none!important;width:auto!important;padding:8px 32px 8px 14px!important;box-shadow:0 2px 12px rgba(0,0,0,.1)!important;border-radius:10px!important;opacity:.95!important;border:1px solid #e9ecef!important}
-  .anSP.v{transform:translateY(0)!important}
+  /* Mobile: at WA/a11y height, hidden by default, slides up only on notification */
+  .anSP{bottom:70px!important;top:auto!important;left:60px!important;right:12px!important;transform:translateY(200px)!important;visibility:hidden!important;max-width:none!important;width:auto!important;padding:8px 32px 8px 14px!important;box-shadow:0 2px 12px rgba(0,0,0,.1)!important;border-radius:10px!important;opacity:0!important;border:1px solid #e9ecef!important;transition:transform .4s cubic-bezier(.4,0,.2,1),opacity .4s,visibility .4s!important}
+  .anSP.v{transform:translateY(0)!important;visibility:visible!important;opacity:.95!important}
   .anSP .av{width:30px!important;height:30px!important;font-size:15px!important}
   .anSP strong{font-size:12px!important}
   .anSP span{font-size:11px!important}
