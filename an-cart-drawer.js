@@ -1,8 +1,10 @@
 /**
- * AN Cart Drawer — v5.0
+ * AN Cart Drawer — v6.7
  * Auto Nahariya — Konimbo Platform
- * Fixes: delete btn, cart icon capture, badge persist, add-to-cart observer, checkout sync
  */
+if(window._anCartLoaded) { /* Prevent double init from multiple Hybrid files */ }
+else {
+window._anCartLoaded = true;
 (function(){
 'use strict';
 
@@ -813,10 +815,14 @@ waitForJQuery(function($){
     clearTimeout(window._anSPT);
     window._anSPT = setTimeout(function(){ $('#anSP').removeClass('v'); }, 5000);
   }
-  setTimeout(function(){
-    showSocialProof();
-    setInterval(showSocialProof, 25000);
-  }, 8000);
+  /* Prevent double-init if two Hybrid files both load the plugin */
+  if(!window._anSPinit){
+    window._anSPinit = true;
+    setTimeout(function(){
+      showSocialProof();
+      setInterval(showSocialProof, 25000);
+    }, 10000);
+  }
   $('#anSX').on('click', function(){ $('#anSP').removeClass('v'); });
 
   /* ----------------------------------------------------------------
@@ -888,3 +894,4 @@ waitForJQuery(function($){
 }); /* end waitForJQuery */
 
 })(); /* end IIFE */
+} /* end double-init guard */
