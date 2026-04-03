@@ -623,29 +623,40 @@ waitForJQuery(function($){
     setTimeout(refresh, 1000);
   }
 
-  /* jQuery delegated — standard click */
-  $(document).on('click', 'a.commit_to_real', function(){
-    setTimeout(afterAdd, 150);
-  });
-  $(document).on('click', '.add_item, div.add_item', function(){
-    setTimeout(afterAdd, 150);
+  /* Track whether user actually clicked add-to-cart */
+  var _userClickedAdd = false;
+
+  /* Mark click on any add-to-cart element */
+  $(document).on('click', 'a.commit_to_real, .add_item, div.add_item, .add_to_cart_btn', function(){
+    _userClickedAdd = true;
   });
 
-  /* Patch global Konimbo add-to-cart functions */
+  /* Safe afterAdd — only fires if user actually clicked */
+  function safeAfterAdd(){
+    if(!_userClickedAdd) return;
+    _userClickedAdd = false;
+    afterAdd();
+  }
+
+  /* jQuery delegated — standard click */
+  $(document).on('click', 'a.commit_to_real', function(){
+    setTimeout(safeAfterAdd, 150);
+  });
+  $(document).on('click', '.add_item, div.add_item', function(){
+    setTimeout(safeAfterAdd, 150);
+  });
+
+  /* Patch global Konimbo add-to-cart functions — only fire if user clicked */
   ['add_to_cart_from_page', 'add_to_cart_from_store', 'add_item_to_cart'].forEach(function(fn){
     if(typeof window[fn] === 'function'){
       var orig = window[fn];
       window[fn] = function(){
         var r = orig.apply(this, arguments);
-        setTimeout(afterAdd, 300);
+        setTimeout(safeAfterAdd, 300);
         return r;
       };
     }
   });
-
-  /* Track whether user actually clicked add-to-cart (prevents auto-add on page load) */
-  var _userClickedAdd = false;
-  $(document).on('click', 'a.commit_to_real', function(){ _userClickedAdd = true; });
 
   /* Watch for .clicked class added by Konimbo after successful add-to-cart */
   var _observedBtns = [];
@@ -656,8 +667,7 @@ waitForJQuery(function($){
       muts.forEach(function(m){
         if(m.type === 'attributes' && m.attributeName === 'class'){
           if(_userClickedAdd && m.target.classList && m.target.classList.contains('clicked')){
-            _userClickedAdd = false; /* reset */
-            afterAdd();
+            safeAfterAdd();
           }
         }
       });
