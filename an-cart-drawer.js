@@ -802,6 +802,8 @@ waitForJQuery(function($){
      SOCIAL PROOF
      ---------------------------------------------------------------- */
   function showSocialProof(){
+    /* Don't show if drawer is open or user is scrolling */
+    if($('#anD').hasClass('op')) return;
     var city = CT[Math.floor(Math.random() * CT.length)];
     var prod = RP[Math.floor(Math.random() * RP.length)];
     var time = TMS[Math.floor(Math.random() * TMS.length)];
@@ -809,15 +811,14 @@ waitForJQuery(function($){
     $('#anSP2').text('רכש ' + prod + ' ' + time);
     $('#anSP').addClass('v');
     clearTimeout(window._anSPT);
-    window._anSPT = setTimeout(function(){ $('#anSP').removeClass('v'); }, 5000);
+    window._anSPT = setTimeout(function(){ $('#anSP').removeClass('v'); }, 4000);
   }
-  /* Prevent double-init if two Hybrid files both load the plugin */
   if(!window._anSPinit){
     window._anSPinit = true;
     setTimeout(function(){
       showSocialProof();
-      setInterval(showSocialProof, 25000);
-    }, 10000);
+      setInterval(showSocialProof, 45000);
+    }, 15000);
   }
   $('#anSX').on('click', function(){ $('#anSP').removeClass('v'); });
 
