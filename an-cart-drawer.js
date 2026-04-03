@@ -626,8 +626,8 @@ waitForJQuery(function($){
   /* Track whether user actually clicked add-to-cart */
   var _userClickedAdd = false;
 
-  /* Mark click on any add-to-cart element */
-  $(document).on('click', 'a.commit_to_real, .add_item, div.add_item, .add_to_cart_btn', function(){
+  /* Mark click ONLY on the actual add-to-cart button (not quantity +/- buttons) */
+  $(document).on('click', 'a.commit_to_real', function(){
     _userClickedAdd = true;
   });
 
@@ -638,16 +638,13 @@ waitForJQuery(function($){
     afterAdd();
   }
 
-  /* jQuery delegated — standard click */
+  /* jQuery delegated — only on the real add-to-cart button */
   $(document).on('click', 'a.commit_to_real', function(){
     setTimeout(safeAfterAdd, 150);
   });
-  $(document).on('click', '.add_item, div.add_item', function(){
-    setTimeout(safeAfterAdd, 150);
-  });
 
-  /* Patch global Konimbo add-to-cart functions — only fire if user clicked */
-  ['add_to_cart_from_page', 'add_to_cart_from_store', 'add_item_to_cart'].forEach(function(fn){
+  /* Patch global Konimbo add-to-cart — only if user clicked the button */
+  ['add_to_cart_from_page', 'add_to_cart_from_store'].forEach(function(fn){
     if(typeof window[fn] === 'function'){
       var orig = window[fn];
       window[fn] = function(){
