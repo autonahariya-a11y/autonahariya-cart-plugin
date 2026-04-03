@@ -643,17 +643,20 @@ waitForJQuery(function($){
     }
   });
 
-  /* MutationObserver on body — watch for .clicked class on a.commit_to_real
-     AND for dynamically injected buttons (Fixes Bug #4 fully)            */
-  var _observerAttached = {};
+  /* Track whether user actually clicked add-to-cart (prevents auto-add on page load) */
+  var _userClickedAdd = false;
+  $(document).on('click', 'a.commit_to_real', function(){ _userClickedAdd = true; });
 
+  /* Watch for .clicked class added by Konimbo after successful add-to-cart */
+  var _observedBtns = [];
   function attachObserverToBtn(btn){
-    if(!btn || _observerAttached[btn]) return;
-    _observerAttached[btn] = true;
+    if(!btn || _observedBtns.indexOf(btn) !== -1) return;
+    _observedBtns.push(btn);
     new MutationObserver(function(muts){
       muts.forEach(function(m){
         if(m.type === 'attributes' && m.attributeName === 'class'){
-          if(m.target.classList && m.target.classList.contains('clicked')){
+          if(_userClickedAdd && m.target.classList && m.target.classList.contains('clicked')){
+            _userClickedAdd = false; /* reset */
             afterAdd();
           }
         }
@@ -661,26 +664,9 @@ waitForJQuery(function($){
     }).observe(btn, {attributes:true, attributeFilter:['class']});
   }
 
-  /* Watch entire document for dynamically injected a.commit_to_real */
-  new MutationObserver(function(muts){
-    muts.forEach(function(m){
-      for(var i=0; i<m.addedNodes.length; i++){
-        var node = m.addedNodes[i];
-        if(node.nodeType !== 1) continue;
-        if(node.matches && node.matches('a.commit_to_real')){ attachObserverToBtn(node); }
-        var sub = node.querySelectorAll ? node.querySelectorAll('a.commit_to_real') : [];
-        for(var j=0; j<sub.length; j++){ attachObserverToBtn(sub[j]); }
-      }
-    });
-  }).observe(document.body, {childList:true, subtree:true});
-
-  /* Also attach to already-present buttons */
-  setTimeout(function(){
-    $('a.commit_to_real').each(function(){ attachObserverToBtn(this); });
-  }, 1000);
-  setTimeout(function(){
-    $('a.commit_to_real').each(function(){ attachObserverToBtn(this); });
-  }, 3000);
+  /* Attach to existing and future a.commit_to_real buttons */
+  setTimeout(function(){ $('a.commit_to_real').each(function(){ attachObserverToBtn(this); }); }, 1500);
+  setTimeout(function(){ $('a.commit_to_real').each(function(){ attachObserverToBtn(this); }); }, 4000);
 
   /* ----------------------------------------------------------------
      CHECKOUT — sync with Konimbo jStorage + DOM + form submit
