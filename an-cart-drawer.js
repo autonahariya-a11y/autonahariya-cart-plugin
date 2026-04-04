@@ -611,13 +611,17 @@ waitForJQuery(function($){
     setTimeout(function(){$('#anAdded').css('transform','translate(-50%,-80px)')},2200);
   }
 
+  var _addDebounce = null;
   function afterAdd(){
+    /* Debounce — prevent double-add from multiple handlers firing */
+    if(_addDebounce) return;
+    _addDebounce = true;
+    setTimeout(function(){ _addDebounce = null; }, 800);
+
     addFromPage();
     if(isMobile){
-      /* Mobile: toast + badge, no drawer */
       setTimeout(function(){ refresh(); updateBadge(); showAddedToast(); }, 400);
     } else {
-      /* Desktop: open drawer (toast shows inside drawer) */
       setTimeout(function(){ refresh(); updateBadge(); anOpen(); }, 400);
     }
     setTimeout(refresh, 1000);
