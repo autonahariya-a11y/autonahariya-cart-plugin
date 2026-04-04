@@ -286,10 +286,11 @@ waitForJQuery(function($){
   dH +=     '<div class="anD-timer" id="anTmr">⏰ המוצרים שמורים ל-<span id="anTm">14:59</span></div>';
   dH +=     '<div id="anList"></div>';
   dH +=   '</div>'; /* /anD-body */
-  /* Cross-sell — fixed above footer */
-  dH +=   '<div class="anD-cs">';
-  dH +=     '<div class="cst">לקוחות שקנו גם רכשו:</div>';
-  dH +=     '<div class="csc">';
+  dH +=   '<div class="anD-ft">';
+  /* Cross-sell — inside footer, before summary */
+  dH +=     '<div class="anD-cs">';
+  dH +=       '<div class="cst">לקוחות שקנו גם רכשו:</div>';
+  dH +=       '<div class="csc">';
   for(var ci=0; ci<CS.length; ci++){
     dH += '<div class="csi">';
     if(CS[ci].i){dH += '<img class="csi-img" src="'+CS[ci].i+'" alt="'+CS[ci].n+'" onerror="this.style.display=\'none\'">'}
@@ -298,9 +299,8 @@ waitForJQuery(function($){
     dH +=   '<button class="csa" type="button" data-ci="' + ci + '">+ הוסף</button>';
     dH += '</div>';
   }
+  dH +=       '</div>';
   dH +=     '</div>';
-  dH +=   '</div>';
-  dH +=   '<div class="anD-ft">';
   dH +=     '<div id="anSum"></div>';
   dH +=     '<div class="anD-tot"><span>סה״כ</span><span id="anTot">₪0</span></div>';
   dH +=     '<button class="anD-go" id="anGo" type="button" disabled>המשך לקופה ←</button>';
