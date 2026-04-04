@@ -637,9 +637,9 @@ waitForJQuery(function($){
   /* Category page: .add_item.quantity a (the "הוסף לסל" button in grid) */
   $(document).on('click', '.cart-add-btn .add_item.quantity a, .grid .add_item.quantity a', function(){
     _userClickedAdd = true;
-    /* Show toast even on category pages where addFromPage won't find product details */
     setTimeout(function(){
-      refresh(); updateBadge(); showAddedToast();
+      refresh(); updateBadge();
+      if(isMobile){ showAddedToast(); } else { anOpen(); }
       _userClickedAdd = false;
     }, 500);
   });
