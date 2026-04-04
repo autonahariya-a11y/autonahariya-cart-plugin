@@ -885,17 +885,18 @@ waitForJQuery(function($){
   }
 
   function rebuildCrossSell(){
-    var h = '<div class="anD-cs"><div class="cst">\u05dc\u05e7\u05d5\u05d7\u05d5\u05ea \u05e9\u05e7\u05e0\u05d5 \u05d2\u05dd \u05e8\u05db\u05e9\u05d5:</div><div class="csc">';
+    var inner = '<div class="cst">\u05dc\u05e7\u05d5\u05d7\u05d5\u05ea \u05e9\u05e7\u05e0\u05d5 \u05d2\u05dd \u05e8\u05db\u05e9\u05d5:</div><div class="csc">';
     for(var i=0; i<CS.length; i++){
-      h += '<div class="csi">';
-      if(CS[i].i){ h += '<img class="csi-img" src="'+CS[i].i+'" alt="'+CS[i].n+'" onerror="this.style.display=\'none\'">'; }
-      h += '<div class="csn">'+CS[i].n+'</div>';
-      h += '<div class="csp">'+fp(CS[i].p)+'</div>';
-      h += '<button class="csa" type="button" data-ci="'+i+'">+ \u05d4\u05d5\u05e1\u05e3</button>';
-      h += '</div>';
+      inner += '<div class="csi">';
+      if(CS[i].i){ inner += '<img class="csi-img" src="'+CS[i].i+'" alt="'+CS[i].n+'" onerror="this.style.display=\'none\'">'; }
+      inner += '<div class="csn">'+CS[i].n+'</div>';
+      inner += '<div class="csp">'+fp(CS[i].p)+'</div>';
+      inner += '<button class="csa" type="button" data-ci="'+i+'">+ \u05d4\u05d5\u05e1\u05e3</button>';
+      inner += '</div>';
     }
-    h += '</div></div>';
-    $('.anD-cs').replaceWith(h);
+    inner += '</div>';
+    /* Replace content inside existing .anD-cs (keeps DOM position) */
+    $('.anD-cs').html(inner);
   }
 
 }); /* end waitForJQuery */
