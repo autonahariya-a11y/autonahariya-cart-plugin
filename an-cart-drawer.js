@@ -613,13 +613,14 @@ waitForJQuery(function($){
 
   function afterAdd(){
     addFromPage();
-    if(isMobile){
-      /* Mobile: just update badge + show small toast, don't open drawer */
-      setTimeout(function(){ refresh(); updateBadge(); showAddedToast(); }, 400);
-    } else {
-      /* Desktop: open the drawer */
-      setTimeout(anOpen, 400);
-    }
+    /* Always show green toast confirmation */
+    setTimeout(function(){
+      refresh();
+      updateBadge();
+      showAddedToast();
+      /* Desktop: also open the drawer */
+      if(!isMobile){ anOpen(); }
+    }, 400);
     setTimeout(refresh, 1000);
   }
 
