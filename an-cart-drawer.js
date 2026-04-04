@@ -613,23 +613,31 @@ waitForJQuery(function($){
 
   function afterAdd(){
     addFromPage();
-    /* Always show green toast confirmation */
-    setTimeout(function(){
-      refresh();
-      updateBadge();
-      showAddedToast();
-      /* Desktop: also open the drawer */
-      if(!isMobile){ anOpen(); }
-    }, 400);
+    if(isMobile){
+      /* Mobile: toast + badge, no drawer */
+      setTimeout(function(){ refresh(); updateBadge(); showAddedToast(); }, 400);
+    } else {
+      /* Desktop: open drawer (toast shows inside drawer) */
+      setTimeout(function(){ refresh(); updateBadge(); anOpen(); }, 400);
+    }
     setTimeout(refresh, 1000);
   }
 
   /* Track whether user actually clicked add-to-cart */
   var _userClickedAdd = false;
 
-  /* Mark click ONLY on the actual add-to-cart button (not quantity +/- buttons) */
-  $(document).on('click', 'a.commit_to_real', function(){
+  /* Mark click on ANY real add-to-cart button across all page types */
+  $(document).on('click', 'a.commit_to_real, #big_cart_now, .fixed_buy_now, .buyNow.to_cart a', function(){
     _userClickedAdd = true;
+  });
+  /* Category page: .add_item.quantity a (the "הוסף לסל" button in grid) */
+  $(document).on('click', '.cart-add-btn .add_item.quantity a, .grid .add_item.quantity a', function(){
+    _userClickedAdd = true;
+    /* Show toast even on category pages where addFromPage won't find product details */
+    setTimeout(function(){
+      refresh(); updateBadge(); showAddedToast();
+      _userClickedAdd = false;
+    }, 500);
   });
 
   /* Safe afterAdd — only fires if user actually clicked */
@@ -639,8 +647,8 @@ waitForJQuery(function($){
     afterAdd();
   }
 
-  /* jQuery delegated — only on the real add-to-cart button */
-  $(document).on('click', 'a.commit_to_real', function(){
+  /* jQuery delegated — all add-to-cart buttons */
+  $(document).on('click', 'a.commit_to_real, #big_cart_now, .fixed_buy_now', function(){
     setTimeout(safeAfterAdd, 150);
   });
 
