@@ -50,74 +50,6 @@ var CS = (function(){
   return manual.length ? manual : CS_DEFAULT;
 })();
 
-/* 50 real product names for social proof */
-var RP = [
-  'שמן מנוע Total Quartz 9000 5W-30',
-  'שמן מנוע Castrol EDGE 5W-30',
-  'שמן מנוע Castrol EDGE 5W-40',
-  'שמן מנוע Lublan 5W-30',
-  'שמן מנוע Mobil 1 0W-40',
-  'מצת NGK ILZKR6F11',
-  'מצת Bosch Super Plus',
-  'פילטר שמן MANN HU815/2X',
-  'פילטר שמן Bosch P7123',
-  'פילטר מזגן לפורד טרנזיט',
-  'פילטר מזגן לרנו קולאוס',
-  'פילטר אוויר לפג\'ו 307',
-  'פילטר אוויר לג\'יפ קומפס',
-  'בולמי תא מטען לרנו מגאן',
-  'בולמי תא מטען להונדה CRV',
-  'תוסף ניקוי סעפת דיזל GAT',
-  'תוסף ניקוי מנוע EUROLUB',
-  'תוסף מפחית עישון GAT',
-  'תוסף ניקוי מערכת דיזל GAT',
-  'תוסף ניקוי מסנן חלקיקים GAT',
-  'פלאש ניקוי רדיאטור GAT',
-  'תוסף שמן קרמי GAT',
-  'תוסף אטימת נזילות GAT',
-  'מטען מצבר NOCO GENIUS1',
-  'מטען מצבר Lemania 12V',
-  'נורות H7 Philips WhiteVision',
-  'נורות H4 Philips WhiteVision',
-  'נורות LED H7 Osram',
-  'בוסטר התנעה NOCO GB20 500A',
-  'בוסטר התנעה Roher Pro 1600A',
-  'בוסטר התנעה Roher Pro 2500A',
-  'שמן גיר אוטומט Aisin',
-  'שמן גיר 75W90',
-  'נוזל בלמים DOT4',
-  'נוזל קירור ירוק 4L',
-  'נוזל קירור אדום 4L',
-  'נוזל קירור כחול 4L',
-  'נוזל שמשות מרוכז',
-  'ספריי ניקוי בלמים',
-  'מפתח פילטר שמן',
-  'רפידות בלם קדמיות Brembo',
-  'רפידות בלם אחוריות TRW',
-  'דיסקיות בלם Zimmermann',
-  'שמן מנוע 10W-40',
-  'שמן מנוע 15W-40',
-  'שמן מנוע 20W-50',
-  '3 תרסיסים ניקוי צמיגים Bono',
-  'פילטר שמן טויוטה מקורי',
-  'סט מצמד LUK',
-  'שמן הגה כוח Febi'
-];
-
-var CT = [
-  'נהריה','חיפה','עכו','כרמיאל','קריית אתא','קריית ביאליק','קריית מוצקין',
-  'נשר','שלומי','מעלות-תרשיחא','צפת','טבריה','עפולה','נצרת',
-  'תל אביב','ראשון לציון','פתח תקווה','רמת גן','נתניה','הרצליה',
-  'רחובות','כפר סבא','רעננה','חולון','בת ים','יבנה',
-  'באר שבע','אשדוד','אשקלון','אילת','דימונה','קרית גת','ערד','ירוחם'
-];
-
-var TMS = [
-  'ממש עכשיו','לפני דקה','לפני 2 דקות','לפני 3 דקות','לפני 5 דקות',
-  'לפני 8 דקות','לפני 10 דקות','לפני 12 דקות','לפני 15 דקות',
-  'לפני 18 דקות','לפני 25 דקות','לפני חצי שעה'
-];
-
 /* =====================================================================
    STORAGE HELPERS
    ===================================================================== */
@@ -307,12 +239,6 @@ waitForJQuery(function($){
   dH +=     '<a class="anD-wa" id="anWa" href="#" target="_blank">לא בטוח? שלח לנו את העגלה בוואטסאפ</a>';
   dH +=   '</div>'; /* /anD-ft */
   dH += '</div>'; /* /anD */
-  /* Social proof popup */
-  dH += '<div class="anSP" id="anSP">';
-  dH +=   '<div class="av">👤</div>';
-  dH +=   '<div><strong id="anSN"></strong><span id="anSP2"></span></div>';
-  dH +=   '<button class="sx" id="anSX" type="button">✕</button>';
-  dH += '</div>';
 
   $('body').append(dH);
 
@@ -807,30 +733,6 @@ waitForJQuery(function($){
     var s = Math.floor((remaining % 60000) / 1000);
     $('#anTm').text((m<10?'0':'') + m + ':' + (s<10?'0':'') + s);
   }, 1000);
-
-  /* ----------------------------------------------------------------
-     SOCIAL PROOF
-     ---------------------------------------------------------------- */
-  function showSocialProof(){
-    /* Don't show if drawer is open or user is scrolling */
-    if($('#anD').hasClass('op')) return;
-    var city = CT[Math.floor(Math.random() * CT.length)];
-    var prod = RP[Math.floor(Math.random() * RP.length)];
-    var time = TMS[Math.floor(Math.random() * TMS.length)];
-    $('#anSN').text('מישהו מ' + city);
-    $('#anSP2').text('רכש ' + prod + ' ' + time);
-    $('#anSP').addClass('v');
-    clearTimeout(window._anSPT);
-    window._anSPT = setTimeout(function(){ $('#anSP').removeClass('v'); }, 4000);
-  }
-  if(!window._anSPinit){
-    window._anSPinit = true;
-    setTimeout(function(){
-      showSocialProof();
-      setInterval(showSocialProof, 45000);
-    }, 15000);
-  }
-  $('#anSX').on('click', function(){ $('#anSP').removeClass('v'); });
 
   /* ----------------------------------------------------------------
      INITIAL RENDER

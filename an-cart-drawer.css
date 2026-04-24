@@ -119,15 +119,6 @@ div.cart.special_cart_with_upgrades{display:none!important;visibility:hidden!imp
 .anD-cs .csi button:hover{background:#28a745!important;color:#fff!important}
 .anD-cs .csi button.ad{background:#28a745!important;color:#fff!important;cursor:default!important}
 
-/* Social proof popup — DESKTOP: centered bottom, larger */
-.anSP{position:fixed!important;bottom:30px!important;left:50%!important;transform:translate(-50%,120%)!important;background:#fff!important;border-radius:14px!important;box-shadow:0 8px 30px rgba(0,0,0,.15)!important;padding:14px 22px 14px 40px!important;display:flex!important;align-items:center!important;gap:14px!important;z-index:9999996!important;transition:transform .5s cubic-bezier(.4,0,.2,1)!important;direction:rtl!important;max-width:440px!important;width:auto!important;font-family:'Segoe UI',Arial,sans-serif!important;border:1px solid #e9ecef!important}
-.anSP.v{transform:translate(-50%,0)!important}
-.anSP .av{width:40px!important;height:40px!important;background:linear-gradient(135deg,#e8f5e9,#c8e6c9)!important;border-radius:50%!important;display:flex!important;align-items:center!important;justify-content:center!important;flex-shrink:0!important;font-size:20px!important}
-.anSP strong{display:block!important;font-size:14px!important;color:#212529!important;margin-bottom:2px!important}
-.anSP span{display:block!important;font-size:13px!important;color:#6c757d!important}
-.anSP .sx{position:absolute!important;top:6px!important;left:8px!important;background:none!important;border:none!important;color:#adb5bd!important;cursor:pointer!important;font-size:16px!important;line-height:1!important;padding:4px!important}
-.anSP .sx:hover{color:#495057!important}
-
 /* ===================================================================
    MOBILE — max-width: 768px
    =================================================================== */
@@ -162,10 +153,4 @@ div.cart.special_cart_with_upgrades{display:none!important;visibility:hidden!imp
   .anD-cs .csi .csn{font-size:11px!important}
   .anD-cs .csi .csp{font-size:12px!important;margin-bottom:4px!important}
   .anD-cs .csi button{padding:3px!important;font-size:10px!important}
-  /* Mobile: flush bottom edge */
-  .anSP{bottom:0!important;top:auto!important;left:0!important;right:0!important;transform:translateY(100%)!important;visibility:hidden!important;max-width:100%!important;width:100%!important;padding:10px 36px 10px 14px!important;box-shadow:0 -2px 10px rgba(0,0,0,.08)!important;border-radius:0!important;opacity:0!important;border:none!important;border-top:1px solid #e9ecef!important;transition:transform .4s cubic-bezier(.4,0,.2,1),opacity .3s,visibility .3s!important}
-  .anSP.v{transform:translateY(0)!important;visibility:visible!important;opacity:1!important}
-  .anSP .av{width:30px!important;height:30px!important;font-size:15px!important}
-  .anSP strong{font-size:12px!important}
-  .anSP span{font-size:11px!important}
 }
