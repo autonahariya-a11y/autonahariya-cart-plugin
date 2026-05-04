@@ -444,10 +444,10 @@ waitForJQuery(function($){
       /* Reset cross-sell button if this was a CS item */
       if(id.indexOf('cs_') === 0){
         var csIdx = id.replace('cs_','');
-        $('.csa[data-ci="'+csIdx+'"]').text('+ \u05d4\u05d5\u05e1\u05e3').removeClass('ad').prop('disabled',false);
+        $('.csa[data-ci="'+csIdx+'"]').text('+').removeClass('ad').prop('disabled',false);
       }
       /* Also reset by real item_id (for auto-fetched cross-sell) */
-      $('.csa[data-real-id="'+id+'"]').text('+ \u05d4\u05d5\u05e1\u05e3').removeClass('ad').prop('disabled',false);
+      $('.csa[data-real-id="'+id+'"]').text('+').removeClass('ad').prop('disabled',false);
     }, 350);
   }
 
@@ -711,7 +711,7 @@ waitForJQuery(function($){
     if(c[id]){ c[id].q++; }
     else { c[id] = {t:p.n, p:p.p, q:1, i:p.i||'', u:p.u||'#'}; }
     save(c);
-    $(this).text('✓ נוסף!').addClass('ad').attr('data-real-id', id);
+    $(this).text('✓').addClass('ad').attr('data-real-id', id);
     refresh();
   });
 
