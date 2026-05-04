@@ -108,19 +108,19 @@ div.cart.special_cart_with_upgrades{display:none!important;visibility:hidden!imp
 .anD-wa:hover{color:#25D366!important;text-decoration:underline!important}
 
 /* Cross-sell section — fixed between body and footer */
-/* Cross-sell — Grid 2x2, image right, info+button stacked left (RTL) */
+/* Cross-sell — Grid 2x2, image right, info middle, small + button bottom-left */
 .anD-cs{padding:12px 16px!important;background:#f8f9fa!important;border-top:1px solid #e9ecef!important;flex-shrink:0!important}
 .anD-cs .cst{font-size:14px!important;font-weight:700!important;color:#343a40!important;margin-bottom:10px!important;text-align:right!important}
 .anD-cs .csc{display:grid!important;grid-template-columns:1fr 1fr!important;gap:8px!important;overflow:visible!important}
-.anD-cs .csi{background:#fff!important;border:1px solid #e9ecef!important;border-radius:10px!important;padding:8px!important;display:grid!important;grid-template-columns:52px 1fr!important;gap:8px!important;align-items:center!important;text-align:right!important;direction:rtl!important;min-width:0!important;transition:border-color .15s,box-shadow .15s!important}
+.anD-cs .csi{position:relative!important;background:#fff!important;border:1px solid #e9ecef!important;border-radius:10px!important;padding:8px 8px 8px 8px!important;display:grid!important;grid-template-columns:52px 1fr!important;gap:8px!important;align-items:center!important;text-align:right!important;direction:rtl!important;min-width:0!important;transition:border-color .15s,box-shadow .15s!important}
 .anD-cs .csi:hover{border-color:#28a745!important;box-shadow:0 2px 8px rgba(40,167,69,.08)!important}
 .anD-cs .csi-img{width:52px!important;height:52px!important;object-fit:contain!important;border-radius:6px!important;display:block!important;background:#f8f9fa!important;flex-shrink:0!important}
-.anD-cs .csi-info{min-width:0!important;display:flex!important;flex-direction:column!important;gap:3px!important;overflow:hidden!important}
+.anD-cs .csi-info{min-width:0!important;display:flex!important;flex-direction:column!important;gap:2px!important;overflow:hidden!important;padding-left:28px!important}
 .anD-cs .csi .csn{font-size:11.5px!important;font-weight:600!important;color:#343a40!important;line-height:1.3!important;display:-webkit-box!important;-webkit-line-clamp:2!important;-webkit-box-orient:vertical!important;overflow:hidden!important;text-overflow:ellipsis!important;word-break:break-word!important}
-.anD-cs .csi .csp{font-size:13px!important;font-weight:700!important;color:#28a745!important}
-.anD-cs .csi button{margin-top:2px!important;width:100%!important;padding:4px 6px!important;background:#fff!important;border:1.5px solid #28a745!important;color:#28a745!important;border-radius:6px!important;font-size:11px!important;font-weight:700!important;cursor:pointer!important;line-height:1!important;transition:background .15s,color .15s!important}
-.anD-cs .csi button:hover{background:#28a745!important;color:#fff!important}
-.anD-cs .csi button.ad{background:#28a745!important;color:#fff!important;cursor:default!important}
+.anD-cs .csi .csp{font-size:13px!important;font-weight:700!important;color:#28a745!important;margin-top:auto!important}
+.anD-cs .csi button.csa{position:absolute!important;bottom:8px!important;left:8px!important;width:26px!important;height:26px!important;padding:0!important;background:#28a745!important;border:none!important;color:#fff!important;border-radius:50%!important;font-size:18px!important;font-weight:700!important;line-height:1!important;cursor:pointer!important;display:flex!important;align-items:center!important;justify-content:center!important;box-shadow:0 1px 3px rgba(0,0,0,.15)!important;transition:transform .15s,background .15s!important;z-index:2!important}
+.anD-cs .csi button.csa:hover{background:#218838!important;transform:scale(1.1)!important}
+.anD-cs .csi button.csa.ad{background:#6c757d!important;cursor:default!important;transform:none!important;font-size:14px!important}
 
 /* ===================================================================
    MOBILE — max-width: 768px
@@ -153,7 +153,8 @@ div.cart.special_cart_with_upgrades{display:none!important;visibility:hidden!imp
   .anD-cs .csc{gap:6px!important}
   .anD-cs .csi{padding:6px!important;grid-template-columns:44px 1fr!important;gap:6px!important;border-radius:8px!important}
   .anD-cs .csi-img{width:44px!important;height:44px!important}
+  .anD-cs .csi-info{padding-left:24px!important}
   .anD-cs .csi .csn{font-size:11px!important;-webkit-line-clamp:2!important}
   .anD-cs .csi .csp{font-size:12px!important}
-  .anD-cs .csi button{padding:3px 4px!important;font-size:10px!important}
+  .anD-cs .csi button.csa{width:22px!important;height:22px!important;font-size:15px!important;bottom:6px!important;left:6px!important}
 }

@@ -227,7 +227,7 @@ waitForJQuery(function($){
     dH +=   '<div class="csi-info">';
     dH +=     '<div class="csn">' + CS[ci].n + '</div>';
     dH +=     '<div class="csp">' + fp(CS[ci].p) + '</div>';
-    dH +=     '<button class="csa" type="button" data-ci="' + ci + '" aria-label="הוסף לעגלה">+ הוסף</button>';
+    dH +=     '<button class="csa" type="button" data-ci="' + ci + '" aria-label="הוסף לעגלה">+</button>';
     dH +=   '</div>';
     dH += '</div>';
   }
@@ -796,7 +796,7 @@ waitForJQuery(function($){
       inner += '<div class="csi-info">';
       inner += '<div class="csn">'+CS[i].n+'</div>';
       inner += '<div class="csp">'+fp(CS[i].p)+'</div>';
-      inner += '<button class="csa" type="button" data-ci="'+i+'" aria-label="\u05d4\u05d5\u05e1\u05e3 \u05dc\u05e2\u05d2\u05dc\u05d4">+ \u05d4\u05d5\u05e1\u05e3</button>';
+      inner += '<button class="csa" type="button" data-ci="'+i+'" aria-label="\u05d4\u05d5\u05e1\u05e3 \u05dc\u05e2\u05d2\u05dc\u05d4">+</button>';
       inner += '</div>';
       inner += '</div>';
     }
