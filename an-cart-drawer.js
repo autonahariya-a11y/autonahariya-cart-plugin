@@ -223,12 +223,14 @@ waitForJQuery(function($){
   dH +=     '<div class="anD-cs">';
   dH +=       '<div class="cst">לקוחות שקנו גם רכשו:</div>';
   dH +=       '<div class="csc">';
-  for(var ci=0; ci<CS.length; ci++){
+  for(var ci=0; ci<CS.length && ci<4; ci++){
     dH += '<div class="csi">';
     if(CS[ci].i){dH += '<img class="csi-img" src="'+CS[ci].i+'" alt="'+CS[ci].n+'" onerror="this.style.display=\'none\'">'}
-    dH +=   '<div class="csn">' + CS[ci].n + '</div>';
-    dH +=   '<div class="csp">' + fp(CS[ci].p) + '</div>';
-    dH +=   '<button class="csa" type="button" data-ci="' + ci + '">+ הוסף</button>';
+    dH +=   '<div class="csi-info">';
+    dH +=     '<div class="csn">' + CS[ci].n + '</div>';
+    dH +=     '<div class="csp">' + fp(CS[ci].p) + '</div>';
+    dH +=   '</div>';
+    dH +=   '<button class="csa" type="button" data-ci="' + ci + '" aria-label="הוסף לעגלה">+</button>';
     dH += '</div>';
   }
   dH +=       '</div>';
@@ -788,12 +790,14 @@ waitForJQuery(function($){
 
   function rebuildCrossSell(){
     var inner = '<div class="cst">\u05dc\u05e7\u05d5\u05d7\u05d5\u05ea \u05e9\u05e7\u05e0\u05d5 \u05d2\u05dd \u05e8\u05db\u05e9\u05d5:</div><div class="csc">';
-    for(var i=0; i<CS.length; i++){
+    for(var i=0; i<CS.length && i<4; i++){
       inner += '<div class="csi">';
       if(CS[i].i){ inner += '<img class="csi-img" src="'+CS[i].i+'" alt="'+CS[i].n+'" onerror="this.style.display=\'none\'">'; }
+      inner += '<div class="csi-info">';
       inner += '<div class="csn">'+CS[i].n+'</div>';
       inner += '<div class="csp">'+fp(CS[i].p)+'</div>';
-      inner += '<button class="csa" type="button" data-ci="'+i+'">+ \u05d4\u05d5\u05e1\u05e3</button>';
+      inner += '</div>';
+      inner += '<button class="csa" type="button" data-ci="'+i+'" aria-label="\u05d4\u05d5\u05e1\u05e3 \u05dc\u05e2\u05d2\u05dc\u05d4">+</button>';
       inner += '</div>';
     }
     inner += '</div>';
