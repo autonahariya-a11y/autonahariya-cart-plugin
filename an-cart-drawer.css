@@ -112,7 +112,7 @@ div.cart.special_cart_with_upgrades{display:none!important;visibility:hidden!imp
 .anD-cs{padding:12px 16px!important;background:#f8f9fa!important;border-top:1px solid #e9ecef!important;border-bottom:1px solid #e9ecef!important;flex-shrink:0!important}
 .anD-cs .cst{font-size:14px!important;font-weight:700!important;color:#343a40!important;margin-bottom:10px!important;text-align:right!important}
 .anD-cs .csc{display:grid!important;grid-template-columns:1fr 1fr!important;gap:8px!important;overflow:visible!important}
-.anD-cs .csi{position:relative!important;background:#fff!important;border:1px solid #e9ecef!important;border-radius:10px!important;padding:8px!important;display:grid!important;grid-template-columns:52px 1fr!important;gap:8px!important;align-items:center!important;text-align:right!important;direction:rtl!important;min-width:0!important;transition:border-color .15s,box-shadow .15s!important}
+.anD-cs .csi{position:relative!important;background:#fff!important;border:1px solid #e9ecef!important;border-radius:10px!important;padding:8px 8px 8px 36px!important;display:grid!important;grid-template-columns:52px 1fr!important;gap:8px!important;align-items:center!important;text-align:right!important;direction:rtl!important;min-width:0!important;transition:border-color .15s,box-shadow .15s!important}
 .anD-cs .csi:hover{border-color:#28a745!important;box-shadow:0 2px 8px rgba(40,167,69,.08)!important}
 .anD-cs .csi-img{width:52px!important;height:52px!important;object-fit:contain!important;border-radius:6px!important;display:block!important;background:#f8f9fa!important;flex-shrink:0!important}
 .anD-cs .csi-info{min-width:0!important;display:flex!important;flex-direction:column!important;gap:2px!important;overflow:hidden!important}
@@ -151,7 +151,7 @@ div.cart.special_cart_with_upgrades{display:none!important;visibility:hidden!imp
   .anD-cs{padding:10px 12px!important}
   .anD-cs .cst{font-size:13px!important;margin-bottom:8px!important}
   .anD-cs .csc{gap:6px!important}
-  .anD-cs .csi{padding:6px!important;grid-template-columns:44px 1fr!important;gap:6px!important;border-radius:8px!important}
+  .anD-cs .csi{padding:6px 30px 6px 6px!important;grid-template-columns:44px 1fr!important;gap:6px!important;border-radius:8px!important}
   .anD-cs .csi-img{width:44px!important;height:44px!important}
   .anD-cs .csi .csn{font-size:11px!important;-webkit-line-clamp:2!important}
   .anD-cs .csi .csp{font-size:12px!important}
