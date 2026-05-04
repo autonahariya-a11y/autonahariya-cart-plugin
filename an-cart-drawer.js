@@ -217,7 +217,9 @@ waitForJQuery(function($){
   dH +=     '<div id="anShip"></div>';
   dH +=     '<div class="anD-timer" id="anTmr">⏰ המוצרים שמורים ל-<span id="anTm">14:59</span></div>';
   dH +=     '<div id="anList"></div>';
-  /* Cross-sell — at end of body, after items, scrolls with content */
+  dH +=   '</div>'; /* /anD-body */
+  dH +=   '<div class="anD-ft">';
+  /* Cross-sell — at top of footer, glued to bottom of cart body */
   dH +=     '<div class="anD-cs">';
   dH +=       '<div class="cst">לקוחות שקנו גם רכשו:</div>';
   dH +=       '<div class="csc">';
@@ -233,8 +235,6 @@ waitForJQuery(function($){
   }
   dH +=       '</div>';
   dH +=     '</div>';
-  dH +=   '</div>'; /* /anD-body */
-  dH +=   '<div class="anD-ft">';
   dH +=     '<div id="anSum"></div>';
   dH +=     '<div class="anD-tot"><span>סה״כ</span><span id="anTot">₪0</span></div>';
   dH +=     '<button class="anD-go" id="anGo" type="button" disabled>המשך לקופה ←</button>';
