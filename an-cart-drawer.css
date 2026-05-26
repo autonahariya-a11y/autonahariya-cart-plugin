@@ -49,7 +49,7 @@
 /* =====================================================================
    FREE SHIPPING BAR (top of body)
    ===================================================================== */
-.anD-ship{background:linear-gradient(135deg,#eff6ff,#f0f9ff)!important;padding:14px 22px!important;font-size:13.5px!important;color:#1e40af!important;font-weight:500!important;border-bottom:1px solid #e2e8f0!important;line-height:1.4!important}
+.anD-ship{background:linear-gradient(135deg,#eff6ff,#f0f9ff)!important;padding:14px 22px!important;font-size:13.5px!important;color:#1e40af!important;font-weight:500!important;border-bottom:1px solid #e2e8f0!important;line-height:1.4!important;text-align:center!important}
 .anD-ship b{color:#0c4a6e!important;font-weight:700!important}
 .anD-ship.fr{background:linear-gradient(135deg,#d1fae5,#ecfdf5)!important;color:#065f46!important}
 .anD-ship.fr b{color:#064e3b!important}
