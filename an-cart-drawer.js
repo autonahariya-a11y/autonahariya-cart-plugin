@@ -1,6 +1,7 @@
 /**
- * AN Cart Drawer — v6.7
+ * AN Cart Drawer — v9.0.0 (Tech Modern)
  * Auto Nahariya — Konimbo Platform
+ * Clean professional design, no cross-sell
  */
 if(window._anCartLoaded) { /* Prevent double init from multiple Hybrid files */ }
 else {
@@ -19,36 +20,6 @@ var DK     = 'an_cart_del';
 var TE_KEY = 'an_te';
 var TIMER_DURATION = 899000; // ~15 min
 
-/*
- * מוצרי Cross-sell — "לקוחות שקנו גם רכשו"
- * אפשרות א: רק URL של מוצר (data-url) — התוסף ישלוף שם/מחיר/תמונה אוטומטית
- * אפשרות ב: שם+מחיר+תמונה ידנית (data-name, data-price, data-img)
- */
-var CS_DEFAULT = [
-  {n:'ספריי ניקוי בלמים', p:29, i:''},
-  {n:'מפתח פילטר שמן',     p:49, i:''},
-  {n:'נוזל קירור ירוק 1L', p:35, i:''}
-];
-
-/* Read cross-sell config from HTML — supports data-url (auto) or data-name (manual) */
-var CS_URLS = []; /* URLs to fetch */
-var CS = (function(){
-  var el = document.getElementById('an-cs-config');
-  if(!el) return CS_DEFAULT;
-  var divs = el.querySelectorAll('div');
-  if(!divs.length) return CS_DEFAULT;
-  var manual = [], urls = [];
-  for(var i=0; i<divs.length; i++){
-    var d = divs[i];
-    if(d.getAttribute('data-url')){
-      urls.push(d.getAttribute('data-url'));
-    } else if(d.getAttribute('data-name')){
-      manual.push({n:d.getAttribute('data-name')||'',p:parseFloat(d.getAttribute('data-price'))||0,i:d.getAttribute('data-img')||''});
-    }
-  }
-  if(urls.length){ CS_URLS = urls; return []; /* will be filled async */ }
-  return manual.length ? manual : CS_DEFAULT;
-})();
 
 /* =====================================================================
    STORAGE HELPERS
@@ -219,22 +190,6 @@ waitForJQuery(function($){
   dH +=     '<div id="anList"></div>';
   dH +=   '</div>'; /* /anD-body */
   dH +=   '<div class="anD-ft">';
-  /* Cross-sell — at top of footer, glued to bottom of cart body */
-  dH +=     '<div class="anD-cs">';
-  dH +=       '<div class="cst">לקוחות שקנו גם רכשו:</div>';
-  dH +=       '<div class="csc">';
-  for(var ci=0; ci<CS.length && ci<4; ci++){
-    dH += '<div class="csi">';
-    if(CS[ci].i){dH += '<img class="csi-img" src="'+CS[ci].i+'" alt="'+CS[ci].n+'" onerror="this.style.display=\'none\'">'}
-    dH +=   '<div class="csi-info">';
-    dH +=     '<div class="csn">' + CS[ci].n + '</div>';
-    dH +=     '<div class="csp">' + fp(CS[ci].p) + '</div>';
-    dH +=     '<button class="csa" type="button" data-ci="' + ci + '" aria-label="הוסף לעגלה">+</button>';
-    dH +=   '</div>';
-    dH += '</div>';
-  }
-  dH +=       '</div>';
-  dH +=     '</div>';
   dH +=     '<div id="anSum"></div>';
   dH +=     '<div class="anD-tot"><span>סה״כ</span><span id="anTot">₪0</span></div>';
   dH +=     '<button class="anD-go" id="anGo" type="button" disabled>המשך לקופה ←</button>';
@@ -305,7 +260,7 @@ waitForJQuery(function($){
     /* Build item list HTML */
     var $l = $('#anList');
     if(!items.length){
-      $l.html('<div class="anD-empty">🛒<p>העגלה שלך ריקה</p><span>הוסף מוצרים להתחיל</span></div>');
+      $l.html('<div class="anD-empty"><div class="ico">🛒</div><h3>העגלה שלך ריקה</h3><p>הוסף מוצרים כדי להתחיל</p></div>');
       $('#anGo').prop('disabled', true);
     } else {
       var h = '<div class="anD-items">';
@@ -441,13 +396,6 @@ waitForJQuery(function($){
       delete c[id];
       save(c);
       refresh();
-      /* Reset cross-sell button if this was a CS item */
-      if(id.indexOf('cs_') === 0){
-        var csIdx = id.replace('cs_','');
-        $('.csa[data-ci="'+csIdx+'"]').text('+').removeClass('ad').prop('disabled',false);
-      }
-      /* Also reset by real item_id (for auto-fetched cross-sell) */
-      $('.csa[data-real-id="'+id+'"]').text('+').removeClass('ad').prop('disabled',false);
     }, 350);
   }
 
@@ -698,24 +646,6 @@ waitForJQuery(function($){
   });
 
   /* ----------------------------------------------------------------
-     CROSS-SELL
-     ---------------------------------------------------------------- */
-  $(document).on('click', '.csa:not(.ad)', function(e){
-    e.preventDefault(); e.stopPropagation();
-    var idx = parseInt($(this).attr('data-ci'), 10);
-    var p = CS[idx];
-    if(!p) return;
-    /* Use real Konimbo item_id if available (from auto-fetch), otherwise cs_ fallback */
-    var id = p.itemId ? ('item_id_' + p.itemId) : ('cs_' + idx);
-    var c = load();
-    if(c[id]){ c[id].q++; }
-    else { c[id] = {t:p.n, p:p.p, q:1, i:p.i||'', u:p.u||'#'}; }
-    save(c);
-    $(this).text('✓').addClass('ad').attr('data-real-id', id);
-    refresh();
-  });
-
-  /* ----------------------------------------------------------------
      TIMER — sessionStorage persisted, resets without deleting items
      ---------------------------------------------------------------- */
   var timerEnd = parseInt(sessionStorage.getItem(TE_KEY), 10) || 0;
@@ -741,69 +671,6 @@ waitForJQuery(function($){
      Badge is already updated above, now also update drawer counter
      ---------------------------------------------------------------- */
   refresh();
-
-  /* ----------------------------------------------------------------
-     CROSS-SELL: AUTO-FETCH from product URLs
-     If CS_URLS has URLs, fetch each product page and extract details
-     ---------------------------------------------------------------- */
-  if(CS_URLS.length){
-    var fetched = [];
-    var done = 0;
-    var total = CS_URLS.length;
-    CS_URLS.forEach(function(url, idx){
-      $.ajax({
-        url: url,
-        dataType: 'html',
-        timeout: 8000,
-        success: function(html){
-          var $page = $('<div>').html(html);
-          var title = $.trim($page.find('h1 span').first().text()).replace(/^\u200f/,'') ||
-                      $.trim($page.find('#item_current_title').text()) ||
-                      $.trim($page.find('h1').first().text()) || 'מוצר';
-          var pEl = $page.find('#item_show_price .price_value').first();
-          var price = 0;
-          if(pEl.length){ price = parseFloat(pEl.attr('content') || pEl.text().replace(/[^\d.]/g,'')) || 0; }
-          if(!price){ price = parseFloat($page.find('.price_value').first().text().replace(/[^\d.]/g,'')) || 0; }
-          var img = $page.find('#lightSlider img, .swiper-slide img, .main_image img').first().attr('src') || '';
-          if(img && img.indexOf('//')==0) img = 'https:' + img;
-          var itemId = $page.find('input[name="item_id"]').val() || '';
-          fetched[idx] = {n:title, p:price, i:img, u:url, itemId:itemId};
-        },
-        error: function(){
-          fetched[idx] = null;
-        },
-        complete: function(){
-          done++;
-          if(done >= total){
-            /* All fetched — rebuild cross-sell */
-            CS = [];
-            for(var f=0; f<fetched.length; f++){
-              if(fetched[f]) CS.push(fetched[f]);
-            }
-            if(!CS.length) CS = CS_DEFAULT;
-            rebuildCrossSell();
-          }
-        }
-      });
-    });
-  }
-
-  function rebuildCrossSell(){
-    var inner = '<div class="cst">\u05dc\u05e7\u05d5\u05d7\u05d5\u05ea \u05e9\u05e7\u05e0\u05d5 \u05d2\u05dd \u05e8\u05db\u05e9\u05d5:</div><div class="csc">';
-    for(var i=0; i<CS.length && i<4; i++){
-      inner += '<div class="csi">';
-      if(CS[i].i){ inner += '<img class="csi-img" src="'+CS[i].i+'" alt="'+CS[i].n+'" onerror="this.style.display=\'none\'">'; }
-      inner += '<div class="csi-info">';
-      inner += '<div class="csn">'+CS[i].n+'</div>';
-      inner += '<div class="csp">'+fp(CS[i].p)+'</div>';
-      inner += '<button class="csa" type="button" data-ci="'+i+'" aria-label="\u05d4\u05d5\u05e1\u05e3 \u05dc\u05e2\u05d2\u05dc\u05d4">+</button>';
-      inner += '</div>';
-      inner += '</div>';
-    }
-    inner += '</div>';
-    /* Replace content inside existing .anD-cs (keeps DOM position) */
-    $('.anD-cs').html(inner);
-  }
 
 }); /* end waitForJQuery */
 
