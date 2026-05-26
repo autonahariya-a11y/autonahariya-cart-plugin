@@ -186,7 +186,7 @@ waitForJQuery(function($){
   dH +=   '</div>';
   dH +=   '<div class="anD-body" id="anBody">';
   dH +=     '<div id="anShip"></div>';
-  dH +=     '<div class="anD-timer" id="anTmr">⏰ המוצרים שמורים ל-<span id="anTm">14:59</span></div>';
+  dH +=     '<div class="anD-timer" id="anTmr"><svg class="tIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="10" y1="2" x2="14" y2="2"/><line x1="12" y1="14" x2="15" y2="11"/><circle cx="12" cy="14" r="8"/></svg><span>המוצרים שמורים ל-<span id="anTm">14:59</span></span></div>';
   dH +=     '<div id="anList"></div>';
   dH +=   '</div>'; /* /anD-body */
   dH +=   '<div class="anD-ft">';
@@ -297,12 +297,13 @@ waitForJQuery(function($){
     var tot = sub + sh;
     var pct = Math.min(100, (sub / SHIP) * 100);
     var diff = Math.max(0, SHIP - sub);
+    var frCls = sub >= SHIP ? ' fr' : '';
     $('#anShip').html(
-      '<div class="anD-ship">' +
+      '<div class="anD-ship' + frCls + '">' +
       (sub >= SHIP
-        ? 'מזל טוב! זכית במשלוח חינם! 🎉'
-        : 'חסרים לך <b>' + fp(diff) + '</b> למשלוח חינם! 🚚') +
-      '<div class="anD-bar"><div style="width:' + pct + '%"></div></div></div>'
+        ? 'מזל טוב! זכית במשלוח חינם'
+        : 'הוסף עוד <b>' + fp(diff) + '</b> למשלוח חינם') +
+      '<div class="anD-bar"><i style="width:' + pct + '%"></i></div></div>'
     );
 
     /* Summary */

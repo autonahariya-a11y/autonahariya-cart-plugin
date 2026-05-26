@@ -61,7 +61,8 @@
 /* =====================================================================
    TIMER STRIP
    ===================================================================== */
-.anD-timer{background:#fefce8!important;color:#854d0e!important;padding:8px 22px!important;font-size:12.5px!important;font-weight:500!important;text-align:center!important;border-bottom:1px solid #e2e8f0!important;display:flex!important;align-items:center!important;justify-content:center!important;gap:6px!important}
+.anD-timer{background:#fefce8!important;color:#854d0e!important;padding:8px 22px!important;font-size:12.5px!important;font-weight:500!important;text-align:center!important;border-bottom:1px solid #e2e8f0!important;display:flex!important;align-items:center!important;justify-content:center!important;gap:7px!important}
+.anD-timer .tIcon{width:14px!important;height:14px!important;color:#854d0e!important;flex-shrink:0!important;stroke:currentColor!important}
 .anD-timer #anTm{font-weight:700!important;color:#713f12!important;font-variant-numeric:tabular-nums!important}
 
 /* =====================================================================
