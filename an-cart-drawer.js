@@ -17,8 +17,7 @@ var SCOST  = 35;
 var PHONE  = '97249517322';
 var CK     = 'an_cart_v4';
 var DK     = 'an_cart_del';
-var TE_KEY = 'an_te';
-var TIMER_DURATION = 899000; // ~15 min
+
 
 
 /* =====================================================================
@@ -186,7 +185,6 @@ waitForJQuery(function($){
   dH +=   '</div>';
   dH +=   '<div class="anD-body" id="anBody">';
   dH +=     '<div id="anShip"></div>';
-  dH +=     '<div class="anD-timer" id="anTmr"><svg class="tIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="10" y1="2" x2="14" y2="2"/><line x1="12" y1="14" x2="15" y2="11"/><circle cx="12" cy="14" r="8"/></svg><span>המוצרים שמורים ל-<span id="anTm">14:59</span></span></div>';
   dH +=     '<div id="anList"></div>';
   dH +=   '</div>'; /* /anD-body */
   dH +=   '<div class="anD-ft">';
@@ -645,27 +643,6 @@ waitForJQuery(function($){
       window.location.href = 'https://secure.konimbo.co.il/orders/autonahariya/new';
     }
   });
-
-  /* ----------------------------------------------------------------
-     TIMER — sessionStorage persisted, resets without deleting items
-     ---------------------------------------------------------------- */
-  var timerEnd = parseInt(sessionStorage.getItem(TE_KEY), 10) || 0;
-  if(!timerEnd || timerEnd <= Date.now()){
-    timerEnd = Date.now() + TIMER_DURATION;
-    sessionStorage.setItem(TE_KEY, timerEnd);
-  }
-  setInterval(function(){
-    var remaining = timerEnd - Date.now();
-    if(remaining <= 0){
-      /* Reset timer — DO NOT clear cart items */
-      timerEnd = Date.now() + TIMER_DURATION;
-      sessionStorage.setItem(TE_KEY, timerEnd);
-      remaining = TIMER_DURATION;
-    }
-    var m = Math.floor(remaining / 60000);
-    var s = Math.floor((remaining % 60000) / 1000);
-    $('#anTm').text((m<10?'0':'') + m + ':' + (s<10?'0':'') + s);
-  }, 1000);
 
   /* ----------------------------------------------------------------
      INITIAL RENDER

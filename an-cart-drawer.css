@@ -59,13 +59,6 @@
 .anD-ship.fr .anD-bar i{background:#10b981!important}
 
 /* =====================================================================
-   TIMER STRIP
-   ===================================================================== */
-.anD-timer{background:#fefce8!important;color:#854d0e!important;padding:8px 22px!important;font-size:12.5px!important;font-weight:500!important;text-align:center!important;border-bottom:1px solid #e2e8f0!important;display:flex!important;align-items:center!important;justify-content:center!important;gap:7px!important}
-.anD-timer .tIcon{width:14px!important;height:14px!important;color:#854d0e!important;flex-shrink:0!important;stroke:currentColor!important}
-.anD-timer #anTm{font-weight:700!important;color:#713f12!important;font-variant-numeric:tabular-nums!important}
-
-/* =====================================================================
    CART ITEMS
    ===================================================================== */
 .anD-items{padding:8px 22px!important}
@@ -132,7 +125,6 @@
 
   /* Shipping bar */
   .anD-ship{padding:12px 18px!important;font-size:13px!important}
-  .anD-timer{padding:7px 18px!important;font-size:12px!important}
 
   /* Items */
   .anD-items{padding:6px 18px!important}
