@@ -348,6 +348,10 @@ waitForJQuery(function($){
   $('#anO').on('click', function(){
     anClose();
   });
+  /* ESC key closes drawer */
+  $(document).on('keydown.anCart', function(e){
+    if(e.key === 'Escape' && $('#anD').hasClass('op')){ anClose(); }
+  });
   $('#anCont').on('click', function(e){
     e.preventDefault(); e.stopPropagation();
     anClose();
