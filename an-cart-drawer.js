@@ -1,5 +1,5 @@
 /**
- * AN Cart Drawer — v9.5.0 (Bigger cards, polished progress bar, mobile-optimized)
+ * AN Cart Drawer — v9.6.0 (Compact cards, solid hex colors, hidden scrollbar)
  * Auto Nahariya — Konimbo Platform
  * Clean professional design, integrated gift-by-cart-value system
  */
