@@ -1,5 +1,5 @@
 /**
- * AN Cart Drawer — v9.4.0 (Tech Modern + Gift Tiers + Product-Backed Config)
+ * AN Cart Drawer — v9.5.0 (Bigger cards, polished progress bar, mobile-optimized)
  * Auto Nahariya — Konimbo Platform
  * Clean professional design, integrated gift-by-cart-value system
  */

@@ -188,28 +188,30 @@
   align-items: center;
   justify-content: space-between;
   width: 100%;
-  padding: 12px 16px 8px;
+  padding: 14px 18px 10px;
   text-align: right;
-  gap: 10px;
+  gap: 12px;
   transition: background 200ms cubic-bezier(.2,.7,.2,1);
   color: var(--text);
 }
 #anShip .ang-summary:hover { background: var(--bg-soft); }
 #anShip .ang-text { flex: 1; min-width: 0; }
 #anShip .ang-l1 {
-  font-size: 13px; font-weight: 600;
-  margin: 0 0 2px;
+  font-size: 15px; font-weight: 700;
+  margin: 0 0 3px;
   letter-spacing: .01em;
   color: var(--text);
+  line-height: 1.3;
 }
 #anShip .ang-l2 {
-  font-size: 12px;
+  font-size: 13px;
   color: var(--text-muted);
   margin: 0;
-  font-weight: 400;
+  font-weight: 500;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  line-height: 1.4;
 }
 #anShip .ang-chev {
   display: inline-flex;
@@ -221,19 +223,20 @@
 #anShip .ang-summary[aria-expanded="true"] .ang-chev { transform: rotate(180deg); }
 
 /* ============ פס התקדמות ============ */
-#anShip .ang-progress { padding: 2px 16px 14px; }
+#anShip .ang-progress { padding: 8px 18px 18px; }
 #anShip .ang-track {
   position: relative;
-  height: 3px;
+  height: 6px;
   background: var(--bg-muted);
   border-radius: 999px;
 }
 #anShip .ang-fill {
   position: absolute; top: 0; right: 0; bottom: 0;
   width: 0%;
-  background: var(--primary);
+  background: linear-gradient(90deg, var(--accent), var(--primary));
   border-radius: 999px;
   transition: width 400ms cubic-bezier(.2,.7,.2,1);
+  box-shadow: 0 0 8px rgba(59,130,246,.4);
 }
 #anShip .ang-markers {
   position: absolute; inset: 0;
@@ -241,25 +244,31 @@
 }
 #anShip .ang-marker {
   position: absolute;
-  top: 50%;
-  width: 18px; height: 18px;
-  margin-top: -9px;
+  width: 26px; height: 26px;
   border-radius: 999px;
   background: var(--bg);
-  border: 1.5px solid var(--text-faint);
+  border: 2px solid var(--text-faint);
   display: flex;
   align-items: center;
   justify-content: center;
   color: var(--text-faint);
-  transition: background 200ms, border-color 200ms, color 200ms;
-  transform: translateX(50%);
+  transition: all 250ms cubic-bezier(.2,.7,.2,1);
+  transform: translate(50%, -50%);
+  top: 50%;
+  box-shadow: 0 1px 3px rgba(15,23,42,.08);
 }
-#anShip .ang-marker svg { display: block; }
+#anShip .ang-marker:first-child { transform: translate(0, -50%); }
+#anShip .ang-marker:last-child  { transform: translate(100%, -50%); }
+#anShip .ang-marker svg { display: block; width: 14px; height: 14px; }
 #anShip .ang-marker.reached {
   background: var(--primary);
   border-color: var(--primary);
   color: #fff;
+  transform: translate(50%, -50%) scale(1.1);
+  box-shadow: 0 2px 8px rgba(15,23,42,.25);
 }
+#anShip .ang-marker.reached:first-child { transform: translate(0, -50%) scale(1.1); }
+#anShip .ang-marker.reached:last-child  { transform: translate(100%, -50%) scale(1.1); }
 
 /* ============ פאנל מתפתח ============ */
 #anShip .ang-details {
@@ -272,15 +281,16 @@
   to   { opacity: 1; transform: translateY(0); }
 }
 #anShip .ang-d-title {
-  font-size: 13px; font-weight: 700;
-  margin: 0 0 3px;
+  font-size: 15px; font-weight: 700;
+  margin: 0 0 4px;
   color: var(--text);
+  letter-spacing: .01em;
 }
 #anShip .ang-d-sub {
-  font-size: 12px;
+  font-size: 13px;
   color: var(--text-muted);
-  margin: 0 0 10px;
-  line-height: 1.45;
+  margin: 0 0 12px;
+  line-height: 1.5;
 }
 #anShip .ang-d-sub strong { color: var(--accent); }
 
@@ -303,17 +313,23 @@
 #anShip .ang-lt-th    { font-size: 10px; color: var(--text-faint); margin-top: 1px; }
 
 /* ============ Carousel ============ */
-#anShip .ang-carousel-wrap { position: relative; margin-top: 4px; }
+#anShip .ang-carousel-wrap {
+  position: relative;
+  margin: 8px -18px 0;
+  padding: 0 18px;
+  overflow: hidden;
+}
 #anShip .ang-carousel {
   display: flex;
-  gap: 8px;
+  gap: 10px;
   overflow-x: auto;
   scroll-snap-type: x mandatory;
   scroll-behavior: smooth;
-  padding: 2px 32px 4px;
-  margin: 0 -32px;
+  padding: 4px 18px 12px;
+  margin: 0 -18px;
   scrollbar-width: thin;
   scrollbar-color: var(--border) transparent;
+  -webkit-overflow-scrolling: touch;
 }
 #anShip .ang-carousel::-webkit-scrollbar { height: 4px; }
 #anShip .ang-carousel::-webkit-scrollbar-thumb {
@@ -321,87 +337,103 @@
   border-radius: 999px;
 }
 #anShip .ang-card {
-  flex: 0 0 110px;
+  flex: 0 0 138px;
   scroll-snap-align: start;
   background: var(--bg);
-  border: 1.5px solid var(--border);
-  border-radius: 8px;
-  padding: 10px 8px;
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 10px 12px;
   text-align: center;
-  transition: border-color 200ms, transform 200ms, background 200ms;
+  transition: all 220ms cubic-bezier(.2,.7,.2,1);
   position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
+  box-shadow: 0 1px 2px rgba(15,23,42,.04);
+  min-height: 172px;
 }
 #anShip .ang-card:hover {
   border-color: var(--accent);
-  transform: translateY(-1px);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(59,130,246,.15);
 }
 #anShip .ang-card.selected {
   border-color: var(--accent);
   background: var(--accent-soft);
+  box-shadow: 0 4px 14px rgba(59,130,246,.2);
 }
 #anShip .ang-card.selected::after {
   content: '✓';
   position: absolute;
-  top: 4px; left: 4px;
-  width: 16px; height: 16px;
+  top: 6px; left: 6px;
+  width: 22px; height: 22px;
   border-radius: 999px;
   background: var(--accent);
   color: #fff;
-  font-size: 10px;
+  font-size: 13px;
   font-weight: 700;
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow: 0 2px 6px rgba(59,130,246,.4);
 }
 #anShip .ang-g-emoji {
-  font-size: 26px;
-  margin-bottom: 3px;
+  font-size: 40px;
   line-height: 1;
+  width: 72px;
+  height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-soft);
+  border-radius: 12px;
+  margin: 0 auto 6px;
 }
 #anShip .ang-g-name {
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 600;
-  line-height: 1.25;
+  line-height: 1.3;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
-  min-height: 28px;
+  min-height: 34px;
   color: var(--text);
+  margin-top: 4px;
 }
 #anShip .ang-g-value {
-  font-size: 10px;
-  color: var(--text-faint);
-  margin-top: 2px;
+  font-size: 11px;
+  color: var(--accent);
+  font-weight: 700;
+  margin-top: 6px;
+  background: var(--accent-soft);
+  padding: 2px 10px;
+  border-radius: 999px;
+  display: inline-block;
 }
 
 /* כפתורי ניווט בקרוסלה */
-#anShip .ang-nav {
+/* הסתרת כפתורי ניווט — המשתמש גולל בהחלקה או במגע */
+#anShip .ang-nav { display: none; }
+
+/* רמז גלילה — fade בקצה שמאלי */
+#anShip .ang-carousel-wrap::before,
+#anShip .ang-carousel-wrap::after {
+  content: '';
   position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 24px; height: 24px;
-  border-radius: 999px;
-  background: var(--bg);
-  border: 1px solid var(--border);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 2;
-  color: var(--text-muted);
-  box-shadow: 0 2px 6px rgba(15,23,42,.06);
-  transition: background 200ms, color 200ms, border-color 200ms;
+  top: 0; bottom: 12px;
+  width: 18px;
+  pointer-events: none;
+  z-index: 1;
 }
-#anShip .ang-nav:hover {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: #fff;
+#anShip .ang-carousel-wrap::before {
+  right: 0;
+  background: linear-gradient(to left, var(--bg) 0%, transparent 100%);
 }
-#anShip .ang-nav.prev { right: -2px; }
-#anShip .ang-nav.next { left: -2px; }
+#anShip .ang-carousel-wrap::after {
+  left: 0;
+  background: linear-gradient(to right, var(--bg) 0%, transparent 100%);
+}
 
 /* ============ Upgrade hint ============ */
 #anShip .ang-upgrade {
@@ -422,21 +454,25 @@
 
 /* ============ רספונסיביות ============ */
 @media (max-width: 480px) {
-  #anShip .ang-summary { padding: 10px 14px 6px; }
-  #anShip .ang-progress { padding: 2px 14px 12px; }
-  #anShip .ang-details { padding: 10px 14px 14px; }
-  #anShip .ang-card { flex-basis: 100px; padding: 8px 6px; }
-  #anShip .ang-g-emoji { font-size: 24px; }
+  #anShip .ang-summary { padding: 12px 14px 8px; }
+  #anShip .ang-progress { padding: 6px 14px 14px; }
+  #anShip .ang-details { padding: 12px 14px 16px; }
+  #anShip .ang-card { flex-basis: 124px; padding: 12px 8px 10px; min-height: 160px; }
+  #anShip .ang-g-emoji { font-size: 36px; width: 64px; height: 64px; }
+  #anShip .ang-g-name { font-size: 12px; min-height: 32px; }
+  #anShip .ang-l1 { font-size: 14px; }
+  #anShip .ang-l2 { font-size: 12px; }
 }
 
 /* תמונת מוצר אמיתית בקרוסלה (כשמוזנת דרך #anGiftsConfig) */
 #anShip .ang-g-img {
-  width: 56px; height: 56px;
-  margin: 0 auto 4px;
-  border-radius: 6px;
+  width: 88px; height: 88px;
+  margin: 0 auto 6px;
+  border-radius: 10px;
   overflow: hidden;
   background: var(--bg-soft);
   display: flex; align-items: center; justify-content: center;
+  border: 1px solid var(--border);
 }
 #anShip .ang-g-img img {
   width: 100%; height: 100%;
@@ -444,5 +480,5 @@
   display: block;
 }
 @media (max-width: 480px) {
-  #anShip .ang-g-img { width: 50px; height: 50px; }
+  #anShip .ang-g-img { width: 72px; height: 72px; }
 }
