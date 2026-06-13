@@ -1,5 +1,5 @@
 /**
- * AN Cart Drawer — v9.7.0 (Vivid blue progress fill, gradient markers, breathing room in summary)
+ * AN Cart Drawer — v9.8.0 (Hide gift-value pill + inject selected gift into Konimbo customer_note for checkout)
  * Auto Nahariya — Konimbo Platform
  * Clean professional design, integrated gift-by-cart-value system
  */
@@ -805,6 +805,8 @@ waitForJQuery(function($){
       $form.find('#cart_content').val(encoded).attr('name','cart_content_with_upgrades');
       $form.find('#referer_url').val(location.href);
       $form.find('#request_url').val(location.href);
+      /* Inject the selected gift into customer_note so it reaches the order */
+      injectGiftIntoCustomerNote();
       anClose();
       /* Re-hide old cart */
       $oldCart.css({display:'none',visibility:'hidden',position:'',left:'',opacity:''});
@@ -924,7 +926,7 @@ waitForJQuery(function($){
       var visual = g.image
         ? '<div class="ang-g-img"><img src="' + g.image + '" alt="" loading="lazy"></div>'
         : '<div class="ang-g-emoji">' + (g.emoji || '🎁') + '</div>';
-      var valueLine = g.value > 0 ? '<div class="ang-g-value">שווי ' + fp(g.value) + '</div>' : '';
+      var valueLine = '';
       giftsHTML += '<button class="ang-card' + (isSel ? ' selected' : '') + '" type="button" ' +
                     'data-tier="' + cur.id + '" data-gift="' + g.id + '">' +
                      visual +
@@ -960,32 +962,82 @@ waitForJQuery(function($){
            '</div>';
   }
 
-  function syncGiftToCheckoutForm(total){
+  /* Build the human-readable gift label that goes into the order note */
+  function buildGiftLabel(total){
     var cur = currentTier(total);
     var sel = loadGift();
-    var label = '';
-    if(cur && sel[cur.id]){
-      var picked = null;
-      for(var i=0; i<cur.gifts.length; i++){
-        if(cur.gifts[i].id === sel[cur.id]){ picked = cur.gifts[i]; break; }
-      }
-      if(picked){
-        var prefix = picked.emoji ? (picked.emoji + ' ') : '🎁 ';
-        label = prefix + picked.name + ' (' + cur.label + ' — חינם)';
-        if(picked.url) label += ' ' + picked.url;
-      }
+    if(!cur || !sel[cur.id]) return '';
+    var picked = null;
+    for(var i=0; i<cur.gifts.length; i++){
+      if(cur.gifts[i].id === sel[cur.id]){ picked = cur.gifts[i]; break; }
     }
+    if(!picked) return '';
+    var prefix = picked.emoji ? (picked.emoji + ' ') : '🎁 ';
+    var label = prefix + picked.name + ' (' + cur.label + ' — חינם)';
+    if(picked.url) label += ' ' + picked.url;
+    return label;
+  }
+
+  function syncGiftToCheckoutForm(total){
+    var label = buildGiftLabel(total);
     var $form = $('form#flying_cart');
     if(!$form.length) return;
+    /* Legacy named field (kept for backward compatibility) */
     var $hidden = $form.find('input[name="customer_note_gift"]');
     if(!$hidden.length){
       $hidden = $('<input type="hidden" name="customer_note_gift">').appendTo($form);
     }
     $hidden.val(label);
+    /* Cache for cross-page recovery */
     try{
       if(label) localStorage.setItem('anGift_pending', label);
       else      localStorage.removeItem('anGift_pending');
     }catch(e){}
+  }
+
+  /* Inject the gift label into Konimbo's customer_note (the order-note field that
+     actually reaches the merchant). Konimbo recognises a few names; we cover all
+     of them and also append a prefix so the original note (if any) is preserved. */
+  function injectGiftIntoCustomerNote(){
+    var label = '';
+    try {
+      label = buildGiftLabel(getCartTotal());
+      if(!label) label = localStorage.getItem('anGift_pending') || '';
+    } catch(e){}
+    if(!label) return;
+
+    var giftLine = 'מתנה נבחרת: ' + label;
+    var $form = $('form#flying_cart');
+    if(!$form.length) return;
+
+    /* Try every known Konimbo note-field name */
+    var noteNames = ['customer_note', 'order_note', 'note', 'cart_note', 'comments'];
+    var injected = false;
+    for(var i=0; i<noteNames.length; i++){
+      var $f = $form.find('[name="' + noteNames[i] + '"]');
+      if($f.length){
+        var existing = ($f.val() || '').trim();
+        var combined = existing ? (existing + '\n' + giftLine) : giftLine;
+        $f.val(combined);
+        injected = true;
+      }
+    }
+    /* If no note field exists, create a customer_note hidden field */
+    if(!injected){
+      $('<input type="hidden" name="customer_note">').val(giftLine).appendTo($form);
+    }
+  }
+
+  /* Helper: compute cart total from internal storage (used for note injection) */
+  function getCartTotal(){
+    var c = load();
+    var sub = 0;
+    for(var k in c){
+      if(c.hasOwnProperty(k) && !isDeleted(k)){
+        sub += (Number(c[k].p) || 0) * (Number(c[k].q) || 1);
+      }
+    }
+    return sub;
   }
 
   /* Delegated event handlers — bound once, survive re-renders */
