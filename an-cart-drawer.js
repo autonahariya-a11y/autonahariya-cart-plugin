@@ -1,5 +1,5 @@
 /**
- * AN Cart Drawer — v9.6.0 (Compact cards, solid hex colors, hidden scrollbar)
+ * AN Cart Drawer — v9.7.0 (Vivid blue progress fill, gradient markers, breathing room in summary)
  * Auto Nahariya — Konimbo Platform
  * Clean professional design, integrated gift-by-cart-value system
  */
@@ -880,7 +880,7 @@ waitForJQuery(function($){
       '</button>' +
       '<div class="ang-progress">' +
         '<div class="ang-track">' +
-          '<div class="ang-fill" style="width:' + pct + '%"></div>' +
+          '<div class="ang-fill" style="width:' + pct + '% !important;background:#3b82f6 !important;background-image:linear-gradient(90deg,#2563eb 0%,#3b82f6 50%,#60a5fa 100%) !important;"></div>' +
           '<div class="ang-markers">' + markersHTML + '</div>' +
         '</div>' +
       '</div>';

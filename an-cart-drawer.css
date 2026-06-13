@@ -195,35 +195,37 @@
 
 /* ============ פס סיכום ============ */
 #anShip .ang-summary {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  padding: 14px 18px 10px;
-  text-align: right;
-  gap: 12px;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  width: 100% !important;
+  padding: 18px 20px 14px !important;
+  text-align: right !important;
+  gap: 14px !important;
   transition: background 200ms cubic-bezier(.2,.7,.2,1);
-  color: var(--text);
+  color: #0f172a !important;
 }
-#anShip .ang-summary:hover { background: var(--bg-soft); }
-#anShip .ang-text { flex: 1; min-width: 0; }
+#anShip .ang-summary:hover { background: #f8fafc !important; }
+#anShip .ang-text { flex: 1 !important; min-width: 0 !important; }
 #anShip .ang-l1 {
-  font-size: 15px; font-weight: 700;
-  margin: 0 0 3px;
-  letter-spacing: .01em;
-  color: var(--text);
-  line-height: 1.3;
+  font-size: 16px !important;
+  font-weight: 700 !important;
+  margin: 0 0 6px !important;
+  letter-spacing: .01em !important;
+  color: #0f172a !important;
+  line-height: 1.4 !important;
 }
 #anShip .ang-l2 {
-  font-size: 13px;
-  color: var(--text-muted);
-  margin: 0;
-  font-weight: 500;
+  font-size: 13px !important;
+  color: #64748b !important;
+  margin: 0 !important;
+  font-weight: 500 !important;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  line-height: 1.4;
+  line-height: 1.5 !important;
 }
+#anShip .ang-l2 strong { color: #3b82f6 !important; font-weight: 700; }
 #anShip .ang-chev {
   display: inline-flex;
   color: var(--text-faint);
@@ -234,13 +236,15 @@
 #anShip .ang-summary[aria-expanded="true"] .ang-chev { transform: rotate(180deg); }
 
 /* ============ פס התקדמות ============ */
-#anShip .ang-progress { padding: 14px 18px 12px; }
+#anShip .ang-progress { padding: 18px 20px 16px !important; }
 #anShip .ang-track {
-  position: relative;
-  height: 8px !important;
+  position: relative !important;
+  height: 10px !important;
   background: #e2e8f0 !important;
+  background-color: #e2e8f0 !important;
   border-radius: 999px !important;
-  overflow: visible;
+  overflow: visible !important;
+  box-shadow: inset 0 1px 2px rgba(15,23,42,.08) !important;
 }
 #anShip .ang-fill {
   position: absolute !important;
@@ -249,44 +253,55 @@
   bottom: 0 !important;
   left: auto !important;
   width: 0%;
-  height: 8px !important;
-  background: #0f172a !important;
-  background-image: linear-gradient(90deg, #3b82f6 0%, #0f172a 100%) !important;
+  min-width: 10px;
+  height: 10px !important;
+  background: #3b82f6 !important;
+  background-color: #3b82f6 !important;
+  background-image: linear-gradient(90deg, #2563eb 0%, #3b82f6 50%, #60a5fa 100%) !important;
   border-radius: 999px !important;
-  transition: width 400ms cubic-bezier(.2,.7,.2,1);
-  box-shadow: 0 0 6px rgba(59,130,246,.35);
+  transition: width 500ms cubic-bezier(.2,.7,.2,1);
+  box-shadow: 0 1px 4px rgba(59,130,246,.45), 0 0 8px rgba(59,130,246,.25) !important;
   opacity: 1 !important;
+  visibility: visible !important;
+  display: block !important;
+  z-index: 1 !important;
 }
 #anShip .ang-markers {
   position: absolute; inset: 0;
   pointer-events: none;
 }
 #anShip .ang-marker {
-  position: absolute;
-  width: 22px; height: 22px;
-  border-radius: 999px;
+  position: absolute !important;
+  width: 28px !important;
+  height: 28px !important;
+  border-radius: 999px !important;
   background: #ffffff !important;
-  border: 2px solid #94a3b8 !important;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #94a3b8;
-  transition: all 250ms cubic-bezier(.2,.7,.2,1);
+  background-color: #ffffff !important;
+  border: 2px solid #cbd5e1 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  color: #94a3b8 !important;
+  transition: all 280ms cubic-bezier(.2,.7,.2,1);
   transform: translate(50%, -50%);
   top: 50%;
-  box-shadow: 0 1px 3px rgba(15,23,42,.12);
-  z-index: 2;
+  box-shadow: 0 2px 5px rgba(15,23,42,.12) !important;
+  z-index: 2 !important;
+  opacity: 1 !important;
 }
 #anShip .ang-marker:first-child { transform: translate(0, -50%); }
 #anShip .ang-marker:last-child  { transform: translate(100%, -50%); }
-#anShip .ang-marker svg { display: block; width: 12px; height: 12px; }
+#anShip .ang-marker svg { display: block !important; width: 14px !important; height: 14px !important; }
 #anShip .ang-marker.reached {
-  background: #0f172a !important;
-  border-color: #0f172a !important;
-  color: #fff;
-  transform: translate(50%, -50%) scale(1.1);
-  box-shadow: 0 2px 8px rgba(15,23,42,.3);
+  background: #3b82f6 !important;
+  background-color: #3b82f6 !important;
+  background-image: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%) !important;
+  border: 2px solid #ffffff !important;
+  color: #ffffff !important;
+  transform: translate(50%, -50%) scale(1.12);
+  box-shadow: 0 0 0 2px #3b82f6, 0 3px 8px rgba(59,130,246,.45) !important;
 }
+#anShip .ang-marker.reached svg { color: #ffffff !important; stroke: #ffffff !important; }
 #anShip .ang-marker.reached:first-child { transform: translate(0, -50%) scale(1.1); }
 #anShip .ang-marker.reached:last-child  { transform: translate(100%, -50%) scale(1.1); }
 
