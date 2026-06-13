@@ -1,5 +1,5 @@
 /**
- * AN Cart Drawer — v9.3.0 (Tech Modern + Gift Tiers)
+ * AN Cart Drawer — v9.4.0 (Tech Modern + Gift Tiers + Product-Backed Config)
  * Auto Nahariya — Konimbo Platform
  * Clean professional design, integrated gift-by-cart-value system
  */
@@ -39,6 +39,146 @@ var GIFT_TIERS = [
     { id:'g3c', name:'ערכת כלי עבודה', emoji:'🧰', value:190 }
   ]}
 ];
+
+/* =====================================================================
+   PRODUCT-BACKED CONFIG (optional)
+   If a #anGiftsConfig element exists in the page (added via Hybrid),
+   we parse its <a href="/items/..."> links per tier, fetch each product's
+   JSON-LD on the same domain, and replace GIFT_TIERS with real products.
+   Cached in localStorage for 24h.
+
+   Expected HTML in Hybrid:
+   <div id="anGiftsConfig" style="display:none">
+     <div data-tier="tier1" data-label="מתנה בסיסית" data-threshold="400" data-perks="משלוח חינם,מתנה חינם">
+       <a href="https://www.autonahariya.co.il/items/123"></a>
+       <a href="https://www.autonahariya.co.il/items/124"></a>
+       <a href="https://www.autonahariya.co.il/items/125"></a>
+     </div>
+     <div data-tier="tier2" data-label="מתנה משודרגת" data-threshold="700" data-perks="מתנה משודרגת"> ... </div>
+     <div data-tier="tier3" data-label="מתנת פרימיום" data-threshold="1000" data-perks="מתנת פרימיום"> ... </div>
+   </div>
+   ===================================================================== */
+var GIFT_CACHE_KEY = 'an_gift_products_v1';
+var GIFT_CACHE_TTL = 24 * 60 * 60 * 1000; /* 24h */
+
+function parseGiftsConfig(){
+  var root = document.getElementById('anGiftsConfig');
+  if(!root) return null;
+  var tiers = [];
+  var tierEls = root.querySelectorAll('[data-tier]');
+  for(var i=0; i<tierEls.length; i++){
+    var el = tierEls[i];
+    var links = el.querySelectorAll('a[href*="/items/"]');
+    var urls = [];
+    for(var j=0; j<links.length && j<6; j++){
+      var href = links[j].getAttribute('href');
+      if(href) urls.push(href);
+    }
+    if(!urls.length) continue;
+    var perks = (el.getAttribute('data-perks') || el.getAttribute('data-label') || '').split(',').map(function(s){return s.trim();}).filter(Boolean);
+    tiers.push({
+      id: el.getAttribute('data-tier') || ('tier' + (i+1)),
+      threshold: Number(el.getAttribute('data-threshold')) || 0,
+      label: el.getAttribute('data-label') || ('רמה ' + (i+1)),
+      perks: perks.length ? perks : [el.getAttribute('data-label') || 'מתנה'],
+      _urls: urls
+    });
+  }
+  return tiers.length ? tiers : null;
+}
+
+function loadGiftCache(){
+  try{
+    var raw = localStorage.getItem(GIFT_CACHE_KEY);
+    if(!raw) return null;
+    var obj = JSON.parse(raw);
+    if(!obj || !obj.t || (Date.now() - obj.t) > GIFT_CACHE_TTL) return null;
+    return obj.data;
+  }catch(e){ return null; }
+}
+function saveGiftCache(data){
+  try{ localStorage.setItem(GIFT_CACHE_KEY, JSON.stringify({t:Date.now(), data:data})); }catch(e){}
+}
+
+function fetchProductMeta(url){
+  return fetch(url, {credentials:'same-origin'})
+    .then(function(r){ return r.text(); })
+    .then(function(html){
+      var blocks = html.match(/<script[^>]+application\/ld\+json[^>]*>([\s\S]*?)<\/script>/g) || [];
+      for(var i=0; i<blocks.length; i++){
+        var json = blocks[i].replace(/<script[^>]+>/,'').replace(/<\/script>/,'');
+        try{
+          var data = JSON.parse(json);
+          var t = data && data['@type'];
+          var isProduct = (t === 'Product') || (Array.isArray(t) && t.indexOf('Product') !== -1);
+          if(isProduct){
+            var price = 0;
+            if(data.offers){
+              if(Array.isArray(data.offers)) price = Number(data.offers[0] && data.offers[0].price) || 0;
+              else price = Number(data.offers.price) || 0;
+            }
+            return {
+              id: 'p' + ((url.match(/\/items\/(\d+)/) || [,''])[1]),
+              name: String(data.name || '').replace(/\s*\|.*/, '').trim(),
+              image: data.image || '',
+              value: price,
+              url: url
+            };
+          }
+        }catch(e){}
+      }
+      var ogImg = (html.match(/<meta[^>]+property="og:image"[^>]+content="([^"]+)"/) || [])[1] || '';
+      var ogTitle = (html.match(/<meta[^>]+property="og:title"[^>]+content="([^"]+)"/) || [])[1] || '';
+      return { id:'p'+((url.match(/\/items\/(\d+)/)||[,''])[1]), name:ogTitle, image:ogImg, value:0, url:url };
+    })
+    .catch(function(){ return null; });
+}
+
+function hydrateGiftTiersFromDOM(onReady){
+  var configTiers = parseGiftsConfig();
+  if(!configTiers){ if(onReady) onReady(false); return; }
+
+  var cached = loadGiftCache();
+  if(cached && cached.length === configTiers.length){
+    GIFT_TIERS = cached;
+    if(onReady) onReady(true);
+    setTimeout(function(){ doFetchAndCache(configTiers, function(){}); }, 100);
+    return;
+  }
+  doFetchAndCache(configTiers, onReady);
+}
+
+function doFetchAndCache(configTiers, onReady){
+  var pending = 0, total = 0;
+  for(var i=0; i<configTiers.length; i++) total += configTiers[i]._urls.length;
+  if(!total){ if(onReady) onReady(false); return; }
+
+  var built = configTiers.map(function(t){
+    return { id:t.id, threshold:t.threshold, label:t.label, perks:t.perks, gifts:[] };
+  });
+
+  configTiers.forEach(function(t, ti){
+    t._urls.forEach(function(u, gi){
+      pending++;
+      fetchProductMeta(u).then(function(p){
+        if(p) built[ti].gifts[gi] = { id: t.id + '_' + gi, name:p.name, image:p.image, value:p.value, url:p.url, emoji:'' };
+        if(--pending === 0){
+          for(var x=0; x<built.length; x++){
+            built[x].gifts = built[x].gifts.filter(Boolean);
+          }
+          var ok = built.every(function(b){ return b.gifts.length > 0; });
+          if(ok){
+            GIFT_TIERS = built;
+            saveGiftCache(built);
+            if(onReady) onReady(true);
+          } else {
+            if(onReady) onReady(false);
+          }
+        }
+      });
+    });
+  });
+}
 
 
 
@@ -781,11 +921,15 @@ waitForJQuery(function($){
     for(var gi=0; gi<cur.gifts.length; gi++){
       var g = cur.gifts[gi];
       var isSel = (selectedGiftId === g.id);
+      var visual = g.image
+        ? '<div class="ang-g-img"><img src="' + g.image + '" alt="" loading="lazy"></div>'
+        : '<div class="ang-g-emoji">' + (g.emoji || '🎁') + '</div>';
+      var valueLine = g.value > 0 ? '<div class="ang-g-value">שווי ' + fp(g.value) + '</div>' : '';
       giftsHTML += '<button class="ang-card' + (isSel ? ' selected' : '') + '" type="button" ' +
                     'data-tier="' + cur.id + '" data-gift="' + g.id + '">' +
-                     '<div class="ang-g-emoji">' + g.emoji + '</div>' +
+                     visual +
                      '<div class="ang-g-name">' + g.name + '</div>' +
-                     '<div class="ang-g-value">שווי ' + fp(g.value) + '</div>' +
+                     valueLine +
                    '</button>';
     }
 
@@ -826,7 +970,9 @@ waitForJQuery(function($){
         if(cur.gifts[i].id === sel[cur.id]){ picked = cur.gifts[i]; break; }
       }
       if(picked){
-        label = picked.emoji + ' ' + picked.name + ' (' + cur.label + ' — חינם)';
+        var prefix = picked.emoji ? (picked.emoji + ' ') : '🎁 ';
+        label = prefix + picked.name + ' (' + cur.label + ' — חינם)';
+        if(picked.url) label += ' ' + picked.url;
       }
     }
     var $form = $('form#flying_cart');
@@ -895,6 +1041,11 @@ waitForJQuery(function($){
      Badge is already updated above, now also update drawer counter
      ---------------------------------------------------------------- */
   refresh();
+
+  /* Hydrate gift tiers from #anGiftsConfig if present (after first render) */
+  hydrateGiftTiersFromDOM(function(ok){
+    if(ok) refresh();
+  });
 
 }); /* end waitForJQuery */
 
