@@ -1,7 +1,7 @@
 /**
- * AN Cart Drawer — v9.0.0 (Tech Modern)
+ * AN Cart Drawer — v9.3.0 (Tech Modern + Gift Tiers)
  * Auto Nahariya — Konimbo Platform
- * Clean professional design, no cross-sell
+ * Clean professional design, integrated gift-by-cart-value system
  */
 if(window._anCartLoaded) { /* Prevent double init from multiple Hybrid files */ }
 else {
@@ -17,6 +17,28 @@ var SCOST  = 35;
 var PHONE  = '97249517322';
 var CK     = 'an_cart_v4';
 var DK     = 'an_cart_del';
+var GK     = 'an_gift_v1';  /* gift selection storage key */
+
+/* =====================================================================
+   GIFT TIERS CONFIG — edit gift names/emojis/values here
+   ===================================================================== */
+var GIFT_TIERS = [
+  { id:'tier1', threshold:400,  label:'מתנה בסיסית', perks:['משלוח חינם','מתנה חינם'], gifts:[
+    { id:'g1a', name:'מטלית מיקרופייבר', emoji:'🧽', value:25 },
+    { id:'g1b', name:'מפיץ ריח לרכב',   emoji:'🌲', value:29 },
+    { id:'g1c', name:'מחזיק מפתחות AN', emoji:'🔑', value:22 }
+  ]},
+  { id:'tier2', threshold:700,  label:'מתנה משודרגת', perks:['מתנה משודרגת'], gifts:[
+    { id:'g2a', name:'מטען USB מהיר',   emoji:'🔌', value:65 },
+    { id:'g2b', name:'מארגן תא מטען',   emoji:'📦', value:75 },
+    { id:'g2c', name:'ערכת שטיפת רכב', emoji:'🧴', value:70 }
+  ]},
+  { id:'tier3', threshold:1000, label:'מתנת פרימיום', perks:['מתנת פרימיום'], gifts:[
+    { id:'g3a', name:'מצלמת רכב HD',     emoji:'📷', value:180 },
+    { id:'g3b', name:'שואב אבק נייד',    emoji:'🌬️', value:165 },
+    { id:'g3c', name:'ערכת כלי עבודה', emoji:'🧰', value:190 }
+  ]}
+];
 
 
 
@@ -32,6 +54,19 @@ function fp(n){ return '\u20aa' + Math.round(n); }
 function getDeleted(){try{return JSON.parse(sessionStorage.getItem(DK))||{}}catch(e){return{}}}
 function markDeleted(id){var d=getDeleted();d[id]=1;sessionStorage.setItem(DK,JSON.stringify(d))}
 function isDeleted(id){return !!getDeleted()[id]}
+
+/* Gift selection helpers */
+function loadGift(){try{return JSON.parse(sessionStorage.getItem(GK))||{}}catch(e){return{}}}
+function saveGift(g){try{sessionStorage.setItem(GK,JSON.stringify(g))}catch(e){}}
+function currentTier(total){
+  var c=null;
+  for(var i=0;i<GIFT_TIERS.length;i++){ if(total>=GIFT_TIERS[i].threshold) c=GIFT_TIERS[i]; }
+  return c;
+}
+function nextTier(total){
+  for(var i=0;i<GIFT_TIERS.length;i++){ if(total<GIFT_TIERS[i].threshold) return GIFT_TIERS[i]; }
+  return null;
+}
 
 /* =====================================================================
    WAIT FOR jQuery — init only after $ is available
@@ -290,19 +325,12 @@ waitForJQuery(function($){
       $('#anGo').prop('disabled', false);
     }
 
-    /* Shipping bar */
+    /* Shipping cost (still needed for summary calculation) */
     var sh = sub >= SHIP ? 0 : SCOST;
     var tot = sub + sh;
-    var pct = Math.min(100, (sub / SHIP) * 100);
-    var diff = Math.max(0, SHIP - sub);
-    var frCls = sub >= SHIP ? ' fr' : '';
-    $('#anShip').html(
-      '<div class="anD-ship' + frCls + '">' +
-      (sub >= SHIP
-        ? 'מזל טוב! זכית במשלוח חינם'
-        : 'הוסף עוד <b>' + fp(diff) + '</b> למשלוח חינם') +
-      '<div class="anD-bar"><i style="width:' + pct + '%"></i></div></div>'
-    );
+
+    /* Gift strip — unified shipping + gift progress */
+    renderGiftStrip(sub);
 
     /* Summary */
     $('#anSum').html(
@@ -647,6 +675,220 @@ waitForJQuery(function($){
       window.location.href = 'https://secure.konimbo.co.il/orders/autonahariya/new';
     }
   });
+
+  /* =====================================================================
+     GIFT TIERS SYSTEM — renderGiftStrip + details + handlers
+     ===================================================================== */
+  var giftExpanded = false;
+  var giftUserToggled = false;
+  var lastTierId = null;
+
+  var ICONS = {
+    truck: '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/></svg>',
+    gift:  '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13"/><path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"/><path d="M7.5 8a2.5 2.5 0 0 1 0-5A4.8 8 0 0 1 12 8a4.8 8 0 0 1 4.5-5 2.5 2.5 0 0 1 0 5"/></svg>',
+    trophy:'<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>',
+    chev:  '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>',
+    aL:    '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>',
+    aR:    '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>'
+  };
+  var TIER_ICONS = { tier1: ICONS.truck, tier2: ICONS.gift, tier3: ICONS.trophy };
+
+  function renderGiftStrip(total){
+    var cur = currentTier(total);
+    var nxt = nextTier(total);
+    var maxTh = GIFT_TIERS[GIFT_TIERS.length - 1].threshold;
+    var pct = Math.min(100, (total / maxTh) * 100);
+    var curId = cur ? cur.id : null;
+
+    /* Auto-expand on tier upgrade */
+    if(curId && curId !== lastTierId && !giftUserToggled){
+      giftExpanded = true;
+    }
+    lastTierId = curId;
+
+    var l1, l2;
+    if(!cur && !nxt){
+      l1 = 'הוסף מוצרים לעגלה';
+      l2 = 'הוסיפו ' + fp(GIFT_TIERS[0].threshold) + ' למשלוח חינם ומתנה';
+    } else if(!cur && nxt){
+      l1 = 'הטבות לעגלה';
+      l2 = 'הוסיפו ' + fp(nxt.threshold - total) + ' למשלוח חינם ומתנה';
+    } else if(cur && nxt){
+      l1 = cur.perks.join(' · ');
+      l2 = 'עוד ' + fp(nxt.threshold - total) + ' לשדרוג ל' + nxt.label;
+    } else {
+      l1 = 'משלוח חינם · מתנת פרימיום';
+      l2 = 'זכית בכל ההטבות 🎉';
+    }
+
+    var markersHTML = '';
+    for(var mi=0; mi<GIFT_TIERS.length; mi++){
+      var t = GIFT_TIERS[mi];
+      var reached = total >= t.threshold;
+      var rightPct = (t.threshold / maxTh) * 100;
+      markersHTML += '<div class="ang-marker' + (reached ? ' reached' : '') +
+                     '" style="right:' + rightPct + '%">' + TIER_ICONS[t.id] + '</div>';
+    }
+
+    var summaryHTML =
+      '<button class="ang-summary" type="button" aria-expanded="' + (giftExpanded ? 'true' : 'false') + '">' +
+        '<div class="ang-text">' +
+          '<div class="ang-l1">' + l1 + '</div>' +
+          '<div class="ang-l2">' + l2 + '</div>' +
+        '</div>' +
+        '<span class="ang-chev">' + ICONS.chev + '</span>' +
+      '</button>' +
+      '<div class="ang-progress">' +
+        '<div class="ang-track">' +
+          '<div class="ang-fill" style="width:' + pct + '%"></div>' +
+          '<div class="ang-markers">' + markersHTML + '</div>' +
+        '</div>' +
+      '</div>';
+
+    var detailsHTML = giftExpanded ? renderGiftDetails(total, cur, nxt) : '';
+
+    $('#anShip')
+      .addClass('ang-strip')
+      .toggleClass('expanded', giftExpanded)
+      .html(summaryHTML + detailsHTML);
+
+    syncGiftToCheckoutForm(total);
+  }
+
+  function renderGiftDetails(total, cur, nxt){
+    var sel = loadGift();
+
+    if(!cur){
+      var firstThr = GIFT_TIERS[0].threshold;
+      var remain = Math.max(0, firstThr - total);
+      var lockedCards = '';
+      for(var i=0; i<GIFT_TIERS.length; i++){
+        var tt = GIFT_TIERS[i];
+        lockedCards += '<div class="ang-locked-tier">' +
+                         '<div class="ang-lt-label">' + tt.label + '</div>' +
+                         '<div class="ang-lt-th">' + fp(tt.threshold) + '+</div>' +
+                       '</div>';
+      }
+      return '<div class="ang-details">' +
+               '<div class="ang-d-title">המתנות שלך ממתינות</div>' +
+               '<p class="ang-d-sub">הוסיפו עוד <strong>' + fp(remain) + '</strong> לעגלה כדי לפתוח מתנה ראשונה.</p>' +
+               '<div class="ang-locked-grid">' + lockedCards + '</div>' +
+             '</div>';
+    }
+
+    var selectedGiftId = sel[cur.id];
+    var giftsHTML = '';
+    for(var gi=0; gi<cur.gifts.length; gi++){
+      var g = cur.gifts[gi];
+      var isSel = (selectedGiftId === g.id);
+      giftsHTML += '<button class="ang-card' + (isSel ? ' selected' : '') + '" type="button" ' +
+                    'data-tier="' + cur.id + '" data-gift="' + g.id + '">' +
+                     '<div class="ang-g-emoji">' + g.emoji + '</div>' +
+                     '<div class="ang-g-name">' + g.name + '</div>' +
+                     '<div class="ang-g-value">שווי ' + fp(g.value) + '</div>' +
+                   '</button>';
+    }
+
+    var hint = '';
+    if(nxt){
+      hint = '<div class="ang-upgrade">' +
+               '<div class="ang-u-text">' +
+                 '<strong>שדרוג ל' + nxt.label + '</strong>' +
+                 '<span>עוד ' + fp(nxt.threshold - total) + ' ותוכל לבחור מתנה משודרגת</span>' +
+               '</div>' +
+             '</div>';
+    }
+
+    var title = selectedGiftId ? 'המתנה שבחרת' : 'בחרו מתנה אחת מ' + cur.label;
+    var subT = selectedGiftId
+      ? 'תוכלו להחליף בכל רגע · המתנה תתווסף להזמנה בקופה'
+      : 'המתנה תתווסף להזמנה אוטומטית בקופה';
+
+    return '<div class="ang-details">' +
+             '<div class="ang-d-title">' + title + '</div>' +
+             '<p class="ang-d-sub">' + subT + '</p>' +
+             '<div class="ang-carousel-wrap">' +
+               '<button class="ang-nav prev" type="button" aria-label="הקודם">' + ICONS.aR + '</button>' +
+               '<div class="ang-carousel">' + giftsHTML + '</div>' +
+               '<button class="ang-nav next" type="button" aria-label="הבא">' + ICONS.aL + '</button>' +
+             '</div>' +
+             hint +
+           '</div>';
+  }
+
+  function syncGiftToCheckoutForm(total){
+    var cur = currentTier(total);
+    var sel = loadGift();
+    var label = '';
+    if(cur && sel[cur.id]){
+      var picked = null;
+      for(var i=0; i<cur.gifts.length; i++){
+        if(cur.gifts[i].id === sel[cur.id]){ picked = cur.gifts[i]; break; }
+      }
+      if(picked){
+        label = picked.emoji + ' ' + picked.name + ' (' + cur.label + ' — חינם)';
+      }
+    }
+    var $form = $('form#flying_cart');
+    if(!$form.length) return;
+    var $hidden = $form.find('input[name="customer_note_gift"]');
+    if(!$hidden.length){
+      $hidden = $('<input type="hidden" name="customer_note_gift">').appendTo($form);
+    }
+    $hidden.val(label);
+    try{
+      if(label) localStorage.setItem('anGift_pending', label);
+      else      localStorage.removeItem('anGift_pending');
+    }catch(e){}
+  }
+
+  /* Delegated event handlers — bound once, survive re-renders */
+  $(document).on('click', '.ang-summary', function(){
+    giftExpanded = !giftExpanded;
+    giftUserToggled = true;
+    refresh();
+  });
+
+  $(document).on('click', '.ang-card', function(){
+    var $c = $(this);
+    var tierId = $c.attr('data-tier');
+    var giftId = $c.attr('data-gift');
+    var sel = loadGift();
+    if(sel[tierId] === giftId) delete sel[tierId];
+    else sel[tierId] = giftId;
+    saveGift(sel);
+    refresh();
+  });
+
+  $(document).on('click', '.ang-nav.prev', function(){
+    var car = $(this).siblings('.ang-carousel')[0];
+    if(car) car.scrollBy({ left: 140, behavior: 'smooth' });
+  });
+  $(document).on('click', '.ang-nav.next', function(){
+    var car = $(this).siblings('.ang-carousel')[0];
+    if(car) car.scrollBy({ left: -140, behavior: 'smooth' });
+  });
+
+  /* Gentle prompt: if eligible but no gift picked, offer to pick before checkout */
+  $(document).on('click', '#anGo', function(e){
+    var c = load();
+    var sub = 0;
+    for(var k in c){
+      if(c.hasOwnProperty(k) && !isDeleted(k)){
+        sub += (Number(c[k].p) || 0) * (Number(c[k].q) || 1);
+      }
+    }
+    var cur = currentTier(sub);
+    if(!cur) return;
+    var sel = loadGift();
+    if(sel[cur.id]) return;
+    var msg = 'אתה זכאי למתנה חינם! לבחור מתנה לפני המשך לקופה?';
+    if(!confirm(msg)) return;
+    e.preventDefault(); e.stopImmediatePropagation();
+    giftExpanded = true; giftUserToggled = true;
+    refresh();
+  });
+
 
   /* ----------------------------------------------------------------
      INITIAL RENDER
