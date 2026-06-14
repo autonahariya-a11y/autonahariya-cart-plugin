@@ -1,5 +1,5 @@
 /**
- * AN Cart Drawer — v9.8.0 (Hide gift-value pill + inject selected gift into Konimbo customer_note for checkout)
+ * AN Cart Drawer — v9.9.0 (Inject selected gift as a real line-item in Konimbo cart_content)
  * Auto Nahariya — Konimbo Platform
  * Clean professional design, integrated gift-by-cart-value system
  */
@@ -763,6 +763,21 @@ waitForJQuery(function($){
 
     var rows = buildKonimboRows(c);
 
+    /* Add the selected gift as a phantom row so Konimbo sees it as a line item */
+    try {
+      var giftKey = getSelectedGiftItemKey();
+      if(giftKey){
+        var giftLabel = buildGiftLabel(getCartTotal()) || 'מתנה חינם';
+        rows += '<tr data-id="' + giftKey + '">' +
+                '<td><div class="quantity_step_value_in_cart">1</div><div class="quantity">1</div></td>' +
+                '<td class="img_item"></td>' +
+                '<td class="title"><a href="#">🎁 ' + giftLabel + '</a></td>' +
+                '<td class="delete_btn"><a></a></td>' +
+                '<td class="price_item_x">0 \u20aa</td>' +
+                '</tr>';
+      }
+    } catch(ex){}
+
     /* 1. Sync to jStorage */
     try{
       if(typeof $.jStorage !== 'undefined'){
@@ -789,6 +804,13 @@ waitForJQuery(function($){
       if(!c.hasOwnProperty(ck)) continue;
       cartDetails += ck + '=>' + (c[ck].q||1) + '\u2022';
     }
+    /* Inject the selected gift as a real line-item (qty=1) so it appears in checkout */
+    try {
+      var giftItemKey = getSelectedGiftItemKey();
+      if(giftItemKey && cartDetails.indexOf(giftItemKey + '=>') === -1){
+        cartDetails += giftItemKey + '=>1\u2022';
+      }
+    } catch(ex){}
     var encoded = encodeURI(cartDetails);
 
     /* 5. Also try Konimbo's own function */
@@ -1026,6 +1048,24 @@ waitForJQuery(function($){
     if(!injected){
       $('<input type="hidden" name="customer_note">').val(giftLine).appendTo($form);
     }
+  }
+
+  /* Returns Konimbo item_id key (e.g. 'item_id_3374415') for the selected gift, or '' if none. */
+  function getSelectedGiftItemKey(){
+    try {
+      var total = getCartTotal();
+      var cur  = currentTier(total);
+      var sel  = loadGift();
+      if(!cur || !sel[cur.id]) return '';
+      var picked = null;
+      for(var i=0; i<cur.gifts.length; i++){
+        if(cur.gifts[i].id === sel[cur.id]){ picked = cur.gifts[i]; break; }
+      }
+      if(!picked || !picked.url) return '';
+      var m = picked.url.match(/\/items\/(\d+)/);
+      if(!m) return '';
+      return 'item_id_' + m[1];
+    } catch(e){ return ''; }
   }
 
   /* Helper: compute cart total from internal storage (used for note injection) */
