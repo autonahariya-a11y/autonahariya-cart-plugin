@@ -1,5 +1,5 @@
 /**
- * AN Cart Drawer — v9.11.0 (Fix gift injection getting overwritten by Konimbo set_cart_content)
+ * AN Cart Drawer — v9.12.0 (Build cart_content from internal storage; skip Konimbo set_cart_content to fix qty=0)
  * Auto Nahariya — Konimbo Platform
  * Clean professional design, integrated gift-by-cart-value system
  */
@@ -820,33 +820,35 @@ waitForJQuery(function($){
     }
     $mc.html('<table><tbody>' + rows + '</tbody></table>');
 
-    /* 4. Build cart_content string manually (Konimbo format: item_id_XXX=>QTY•) */
+    /* 4. Build cart_content string MANUALLY from our internal storage.
+       We do NOT call Konimbo's set_cart_content() because it reads stale DOM and
+       returns finish_cart_details with qty=0, breaking checkout. */
     var cartDetails = '';
     for(var ck in c){
       if(!c.hasOwnProperty(ck)) continue;
-      cartDetails += ck + '=>' + (c[ck].q||1) + '\u2022';
+      var qty = parseInt(c[ck].q, 10);
+      if(!qty || qty < 1) qty = 1;
+      cartDetails += ck + '=>' + qty + '\u2022';
     }
 
-    /* 5. Also try Konimbo's own function (do this BEFORE injecting gift so Konimbo doesn't overwrite our gift) */
-    try{
-      if(typeof window.set_cart_content === 'function'){
-        window.set_cart_content();
-        if(window.finish_cart_details) cartDetails = window.finish_cart_details;
-      }
-    }catch(ex){}
-
-    /* 6. Inject the selected gift as a real line-item (qty=1) AFTER Konimbo built its string, so it survives */
+    /* 5. Inject the selected gift as a real line-item (qty=1) */
     var giftItemKeyForLog = '';
     try {
       var giftItemKey = getSelectedGiftItemKey();
       giftItemKeyForLog = giftItemKey;
       if(giftItemKey && cartDetails.indexOf(giftItemKey + '=>') === -1){
-        /* Ensure trailing bullet so format stays parseable */
         if(cartDetails && cartDetails.charAt(cartDetails.length-1) !== '\u2022') cartDetails += '\u2022';
         cartDetails += giftItemKey + '=>1\u2022';
       }
     } catch(ex){}
-    try { console.log('[AN][gift] item:', giftItemKeyForLog, '| cartDetails:', cartDetails); } catch(e){}
+
+    /* 6. Also expose to Konimbo's globals so any downstream code reads our value */
+    try {
+      window.finish_cart_details = cartDetails;
+      window.cart_content_with_upgrades = cartDetails;
+    } catch(ex){}
+
+    try { console.log('[AN][v9.12.0] gift:', giftItemKeyForLog, '| cartDetails:', cartDetails); } catch(e){}
     var encoded = encodeURI(cartDetails);
 
     /* 7. Submit form */
