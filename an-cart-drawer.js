@@ -1,5 +1,5 @@
 /**
- * AN Cart Drawer — v9.10.0 (Manual gift meta via data-name/data-image + Gate gift injection by cart threshold)
+ * AN Cart Drawer — v9.11.0 (Fix gift injection getting overwritten by Konimbo set_cart_content)
  * Auto Nahariya — Konimbo Platform
  * Clean professional design, integrated gift-by-cart-value system
  */
@@ -826,31 +826,48 @@ waitForJQuery(function($){
       if(!c.hasOwnProperty(ck)) continue;
       cartDetails += ck + '=>' + (c[ck].q||1) + '\u2022';
     }
-    /* Inject the selected gift as a real line-item (qty=1) so it appears in checkout */
-    try {
-      var giftItemKey = getSelectedGiftItemKey();
-      if(giftItemKey && cartDetails.indexOf(giftItemKey + '=>') === -1){
-        cartDetails += giftItemKey + '=>1\u2022';
-      }
-    } catch(ex){}
-    var encoded = encodeURI(cartDetails);
 
-    /* 5. Also try Konimbo's own function */
+    /* 5. Also try Konimbo's own function (do this BEFORE injecting gift so Konimbo doesn't overwrite our gift) */
     try{
       if(typeof window.set_cart_content === 'function'){
         window.set_cart_content();
-        if(window.finish_cart_details) encoded = window.finish_cart_details;
+        if(window.finish_cart_details) cartDetails = window.finish_cart_details;
       }
     }catch(ex){}
 
-    /* 6. Submit form */
+    /* 6. Inject the selected gift as a real line-item (qty=1) AFTER Konimbo built its string, so it survives */
+    var giftItemKeyForLog = '';
+    try {
+      var giftItemKey = getSelectedGiftItemKey();
+      giftItemKeyForLog = giftItemKey;
+      if(giftItemKey && cartDetails.indexOf(giftItemKey + '=>') === -1){
+        /* Ensure trailing bullet so format stays parseable */
+        if(cartDetails && cartDetails.charAt(cartDetails.length-1) !== '\u2022') cartDetails += '\u2022';
+        cartDetails += giftItemKey + '=>1\u2022';
+      }
+    } catch(ex){}
+    try { console.log('[AN][gift] item:', giftItemKeyForLog, '| cartDetails:', cartDetails); } catch(e){}
+    var encoded = encodeURI(cartDetails);
+
+    /* 7. Submit form */
     var $form = $('form#flying_cart');
     if($form.length){
-      $form.find('#cart_content').val(encoded).attr('name','cart_content_with_upgrades');
+      /* Force-set both #cart_content (Konimbo's main field) AND ensure name is cart_content_with_upgrades */
+      var $cc = $form.find('#cart_content');
+      if(!$cc.length){
+        $cc = $('<input type="hidden" id="cart_content" name="cart_content_with_upgrades">');
+        $form.append($cc);
+      }
+      $cc.val(encoded).attr('name','cart_content_with_upgrades');
+      /* Also set a sibling explicit field in case Konimbo reads cart_content_with_upgrades by name */
+      var $ccu = $form.find('input[name="cart_content_with_upgrades"]').not($cc);
+      if($ccu.length) $ccu.val(encoded);
+      else $('<input type="hidden" name="cart_content_with_upgrades">').val(encoded).appendTo($form);
       $form.find('#referer_url').val(location.href);
       $form.find('#request_url').val(location.href);
       /* Inject the selected gift into customer_note so it reaches the order */
       injectGiftIntoCustomerNote();
+      try { console.log('[AN][gift] submitting form with cart_content =', $cc.val()); } catch(e){}
       anClose();
       /* Re-hide old cart */
       $oldCart.css({display:'none',visibility:'hidden',position:'',left:'',opacity:''});
@@ -858,7 +875,7 @@ waitForJQuery(function($){
     } else {
       $oldCart.css({display:'none',visibility:'hidden',position:'',left:'',opacity:''});
       anClose();
-      window.location.href = 'https://secure.konimbo.co.il/orders/autonahariya/new';
+      window.location.href = 'https://secure.konimbo.co.il/orders/autonahariya/new?cart_content_with_upgrades=' + encoded;
     }
   });
 
