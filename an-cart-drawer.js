@@ -3,9 +3,14 @@
  * Auto Nahariya — Konimbo Platform
  * Clean professional design, integrated gift-by-cart-value system
  */
-if(window._anCartLoaded) { /* Prevent double init from multiple Hybrid files */ }
+/* Allow override: if v9.12.0+ wants to take over from older versions on the live page,
+   set window._anCartForceReload = true BEFORE loading this script. */
+if(window._anCartLoaded && !window._anCartForceReload) { /* Prevent double init */ }
 else {
 window._anCartLoaded = true;
+window._anCartVersion = '9.12.0';
+/* Unbind old #anGo handlers from previous version so our new one is the only one */
+try { if(window.jQuery) jQuery(document).off('click', '#anGo'); } catch(e){}
 (function(){
 'use strict';
 
