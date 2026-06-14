@@ -785,7 +785,36 @@ waitForJQuery(function($){
 
   $(document).on('click', '#anGo', function(e){
     e.preventDefault(); e.stopPropagation();
+
+    /* Force a fresh sync from Konimbo's jStorage so we don't miss items added
+       via category-page add-to-cart that didn't trigger our addFromPage() */
+    try { refresh(); } catch(ex){}
+
     var c = load();
+
+    /* If our internal cart is still empty/incomplete, try to rebuild from jStorage directly */
+    try {
+      if(typeof $.jStorage !== 'undefined'){
+        var jh = $.jStorage.get('cart_autonahariya');
+        if(jh && typeof jh === 'string'){
+          $('<table>' + jh + '</table>').find('tr[data-id]').each(function(){
+            var $r = $(this), rid = $r.attr('data-id');
+            if(c[rid] || isDeleted(rid)) return;
+            var t = $.trim($r.find('td.title a').text()).replace(/^\u200f/, '');
+            var p = parseFloat(($r.find('td.price_item_x').text()||'0').replace(/[^\d.]/g,'')) || 0;
+            var q = parseInt($r.find('div.quantity').text()) || 1;
+            if(q < 1) q = 1;
+            var img = $r.find('img').attr('src') || '';
+            if(!t) return;
+            c[rid] = {t:t, p:p, q:q, i:img, u:$r.find('td.title a').attr('href')||'#'};
+          });
+          save(c);
+        }
+      }
+    } catch(ex){}
+
+    try { console.log('[AN][v9.12.0] checkout cart =', JSON.stringify(c)); } catch(e){}
+
     if(!Object.keys(c).length) return;
 
     var rows = buildKonimboRows(c);
