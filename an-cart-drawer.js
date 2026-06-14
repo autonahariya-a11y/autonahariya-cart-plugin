@@ -1,5 +1,5 @@
 /**
- * AN Cart Drawer — v9.9.0 (Inject selected gift as a real line-item in Konimbo cart_content)
+ * AN Cart Drawer — v9.10.0 (Manual gift meta via data-name/data-image + Gate gift injection by cart threshold)
  * Auto Nahariya — Konimbo Platform
  * Clean professional design, integrated gift-by-cart-value system
  */
@@ -69,19 +69,24 @@ function parseGiftsConfig(){
   for(var i=0; i<tierEls.length; i++){
     var el = tierEls[i];
     var links = el.querySelectorAll('a[href*="/items/"]');
-    var urls = [];
+    var entries = [];
     for(var j=0; j<links.length && j<6; j++){
-      var href = links[j].getAttribute('href');
-      if(href) urls.push(href);
+      var a = links[j];
+      var href = a.getAttribute('href');
+      if(!href) continue;
+      /* Manual overrides: <a href="..." data-name="..." data-image="...">label</a> */
+      var manualName = a.getAttribute('data-name') || (a.textContent || '').trim() || '';
+      var manualImage = a.getAttribute('data-image') || '';
+      entries.push({ url: href, name: manualName, image: manualImage });
     }
-    if(!urls.length) continue;
+    if(!entries.length) continue;
     var perks = (el.getAttribute('data-perks') || el.getAttribute('data-label') || '').split(',').map(function(s){return s.trim();}).filter(Boolean);
     tiers.push({
       id: el.getAttribute('data-tier') || ('tier' + (i+1)),
       threshold: Number(el.getAttribute('data-threshold')) || 0,
       label: el.getAttribute('data-label') || ('רמה ' + (i+1)),
       perks: perks.length ? perks : [el.getAttribute('data-label') || 'מתנה'],
-      _urls: urls
+      _entries: entries
     });
   }
   return tiers.length ? tiers : null;
@@ -150,30 +155,47 @@ function hydrateGiftTiersFromDOM(onReady){
 
 function doFetchAndCache(configTiers, onReady){
   var pending = 0, total = 0;
-  for(var i=0; i<configTiers.length; i++) total += configTiers[i]._urls.length;
+  for(var i=0; i<configTiers.length; i++) total += configTiers[i]._entries.length;
   if(!total){ if(onReady) onReady(false); return; }
 
   var built = configTiers.map(function(t){
     return { id:t.id, threshold:t.threshold, label:t.label, perks:t.perks, gifts:[] };
   });
 
+  /* Pre-fill gifts with manual data immediately so render is fast (no waiting on fetch) */
   configTiers.forEach(function(t, ti){
-    t._urls.forEach(function(u, gi){
+    t._entries.forEach(function(e, gi){
+      built[ti].gifts[gi] = {
+        id: t.id + '_' + gi,
+        name: e.name || 'מתנה ' + (gi+1),
+        image: e.image || '',
+        value: 0,
+        url: e.url,
+        emoji: ''
+      };
+    });
+  });
+
+  /* Render with manual data right away */
+  GIFT_TIERS = built.map(function(b){ return { id:b.id, threshold:b.threshold, label:b.label, perks:b.perks, gifts:b.gifts.slice() }; });
+  if(onReady) onReady(true);
+
+  /* Then enhance with fetched JSON-LD where possible (overrides manual only if more complete) */
+  configTiers.forEach(function(t, ti){
+    t._entries.forEach(function(e, gi){
       pending++;
-      fetchProductMeta(u).then(function(p){
-        if(p) built[ti].gifts[gi] = { id: t.id + '_' + gi, name:p.name, image:p.image, value:p.value, url:p.url, emoji:'' };
+      fetchProductMeta(e.url).then(function(p){
+        if(p && p.name && !e.name){ built[ti].gifts[gi].name = p.name; }
+        if(p && p.image && !e.image){ built[ti].gifts[gi].image = p.image; }
+        if(p && p.value){ built[ti].gifts[gi].value = p.value; }
         if(--pending === 0){
-          for(var x=0; x<built.length; x++){
-            built[x].gifts = built[x].gifts.filter(Boolean);
-          }
-          var ok = built.every(function(b){ return b.gifts.length > 0; });
-          if(ok){
-            GIFT_TIERS = built;
-            saveGiftCache(built);
-            if(onReady) onReady(true);
-          } else {
-            if(onReady) onReady(false);
-          }
+          GIFT_TIERS = built;
+          saveGiftCache(built);
+        }
+      }).catch(function(){
+        if(--pending === 0){
+          GIFT_TIERS = built;
+          saveGiftCache(built);
         }
       });
     });
