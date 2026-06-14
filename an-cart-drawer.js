@@ -1,5 +1,5 @@
 /**
- * AN Cart Drawer — v9.12.0 (Build cart_content from internal storage; skip Konimbo set_cart_content to fix qty=0)
+ * AN Cart Drawer — v9.13.0 (Include single_access_token in form POST so Konimbo session is created properly)
  * Auto Nahariya — Konimbo Platform
  * Clean professional design, integrated gift-by-cart-value system
  */
@@ -8,7 +8,7 @@
 if(window._anCartLoaded && !window._anCartForceReload) { /* Prevent double init */ }
 else {
 window._anCartLoaded = true;
-window._anCartVersion = '9.12.0';
+window._anCartVersion = '9.13.0';
 /* Unbind old #anGo handlers from previous version so our new one is the only one */
 try { if(window.jQuery) jQuery(document).off('click', '#anGo'); } catch(e){}
 (function(){
@@ -885,33 +885,58 @@ waitForJQuery(function($){
     try { console.log('[AN][v9.12.0] gift:', giftItemKeyForLog, '| cartDetails:', cartDetails); } catch(e){}
     var encoded = encodeURI(cartDetails);
 
-    /* 7. Submit form */
+    /* 7. Submit form — REPLICATE Konimbo's native flow EXACTLY:
+         $('#cart_content').val(finish_cart_details).attr('name','cart_content_with_upgrades');
+         $('#single_access_token').val($('meta[name="single_access_token"]').attr('content'));
+         $('#flying_cart').submit();
+       Konimbo REQUIRES single_access_token; without it the POST is rejected and the
+       checkout page renders an empty server session (qty=0). */
     var $form = $('form#flying_cart');
     if($form.length){
-      /* Force-set both #cart_content (Konimbo's main field) AND ensure name is cart_content_with_upgrades */
+      /* a. Set cart_content and rename to cart_content_with_upgrades (Konimbo's own pattern) */
       var $cc = $form.find('#cart_content');
       if(!$cc.length){
-        $cc = $('<input type="hidden" id="cart_content" name="cart_content_with_upgrades">');
+        $cc = $('<input type="hidden" id="cart_content">');
         $form.append($cc);
       }
       $cc.val(encoded).attr('name','cart_content_with_upgrades');
-      /* Also set a sibling explicit field in case Konimbo reads cart_content_with_upgrades by name */
-      var $ccu = $form.find('input[name="cart_content_with_upgrades"]').not($cc);
-      if($ccu.length) $ccu.val(encoded);
-      else $('<input type="hidden" name="cart_content_with_upgrades">').val(encoded).appendTo($form);
-      $form.find('#referer_url').val(location.href);
-      $form.find('#request_url').val(location.href);
-      /* Inject the selected gift into customer_note so it reaches the order */
+
+      /* b. Set single_access_token from the meta tag — CRITICAL for session creation */
+      var $tok = $form.find('#single_access_token');
+      if(!$tok.length){
+        $tok = $('<input type="hidden" id="single_access_token" name="single_access_token">');
+        $form.append($tok);
+      }
+      var tokVal = $('meta[name="single_access_token"]').attr('content') || '';
+      $tok.val(tokVal);
+
+      /* c. Set cart_key (Konimbo session storage key) */
+      var $ck = $form.find('#cart_key');
+      if(!$ck.length){
+        $ck = $('<input type="hidden" id="cart_key" name="cart_key">');
+        $form.append($ck);
+      }
+      if(!$ck.val()) $ck.val('cart_autonahariya');
+
+      /* d. Standard fields */
+      var $ru = $form.find('#referer_url'); if(!$ru.length){ $ru = $('<input type="hidden" id="referer_url" name="referer_url">'); $form.append($ru); }
+      $ru.val(location.href);
+      var $rq = $form.find('#request_url'); if(!$rq.length){ $rq = $('<input type="hidden" id="request_url" name="request_url">'); $form.append($rq); }
+      $rq.val(location.href);
+
+      /* e. Inject gift into customer_note as a backup */
       injectGiftIntoCustomerNote();
-      try { console.log('[AN][gift] submitting form with cart_content =', $cc.val()); } catch(e){}
+
+      try { console.log('[AN][v9.13.0] submit: cart_content=', $cc.val(), '| token=', tokVal.substring(0,12)+'...', '| action=', $form.attr('action')); } catch(e){}
+
       anClose();
-      /* Re-hide old cart */
       $oldCart.css({display:'none',visibility:'hidden',position:'',left:'',opacity:''});
       setTimeout(function(){ $form.submit(); }, 100);
     } else {
       $oldCart.css({display:'none',visibility:'hidden',position:'',left:'',opacity:''});
       anClose();
-      window.location.href = 'https://secure.konimbo.co.il/orders/autonahariya/new?cart_content_with_upgrades=' + encoded;
+      /* Fallback only if form is somehow missing — GET won't create session but at least sends params */
+      window.location.href = 'https://www.autonahariya.co.il/orders/autonahariya/new?cart_content_with_upgrades=' + encoded;
     }
   });
 
