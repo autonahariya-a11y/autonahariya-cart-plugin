@@ -1,5 +1,5 @@
 /**
- * AN Cart Drawer — v9.14.0 (Global cart-click capture; fixes duplicate ID + race condition causing 404 page)
+ * AN Cart Drawer — v9.15.0 (Neutralize legacy secure.konimbo.co.il cart link causing 404)
  * Auto Nahariya — Konimbo Platform
  * Clean professional design, integrated gift-by-cart-value system
  */
@@ -8,7 +8,7 @@
 if(window._anCartLoaded && !window._anCartForceReload) { /* Prevent double init */ }
 else {
 window._anCartLoaded = true;
-window._anCartVersion = '9.14.0';
+window._anCartVersion = '9.15.0';
 /* Unbind old #anGo handlers from previous version so our new one is the only one */
 try { if(window.jQuery) jQuery(document).off('click', '#anGo'); } catch(e){}
 (function(){
@@ -302,7 +302,8 @@ function attachCartIconCapture(openFn){
           (t.id === 'link_order_with_counter') ||
           (t.classList && (t.classList.contains('nah-ct') || (t.classList.contains('cart') && t.tagName === 'A'))) ||
           (t.getAttribute && t.getAttribute('data-anh-cart') === '1') ||
-          (t.tagName === 'A' && t.href && /\/orders\/autonahariya\/new(?!\?)/.test(t.href));
+          (t.tagName === 'A' && t.href && /\/orders\/autonahariya\/new/.test(t.href)) ||
+          (t.tagName === 'A' && t.href && /secure\.konimbo\.co\.il/.test(t.href) && /cart|order/i.test(t.href));
         if(isCart){
           /* Make sure it's not inside a product card add-to-cart or similar */
           var inProductCard = false;
@@ -355,6 +356,18 @@ function attachCartIconCapture(openFn){
         attachToEl(els[ei]);
       }
     }
+    /* v9.15.0: Also neutralize ALL legacy konimbo cart links by their href.
+       This catches the <a class='cart' href='https://secure.konimbo.co.il/orders/...'>
+       inside <ul id='header_cart_nav'> that is the source of the 404 bug. */
+    try {
+      var legacyLinks = document.querySelectorAll('a[href*="secure.konimbo.co.il"], a.cart[href*="/orders/"], #header_cart_nav a');
+      for(var li=0; li<legacyLinks.length; li++){
+        var lnk = legacyLinks[li];
+        if(lnk && lnk.href && /orders|cart/i.test(lnk.href)){
+          attachToEl(lnk);
+        }
+      }
+    } catch(ex){}
   }
 
   /* Run now and after delays for dynamically rendered headers */
