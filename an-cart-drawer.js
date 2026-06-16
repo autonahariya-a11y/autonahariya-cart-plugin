@@ -1,5 +1,5 @@
 /**
- * AN Cart Drawer — v9.16.0 (Multi-stage cart refresh; detects must-upgrade)
+ * AN Cart Drawer — v9.17.0 (Sync badge with Konimbo truth; clear stale cart)
  * Auto Nahariya — Konimbo Platform
  * Clean professional design, integrated gift-by-cart-value system
  */
@@ -8,7 +8,7 @@
 if(window._anCartLoaded && !window._anCartForceReload) { /* Prevent double init */ }
 else {
 window._anCartLoaded = true;
-window._anCartVersion = '9.16.0';
+window._anCartVersion = '9.17.0';
 /* Unbind old #anGo handlers from previous version so our new one is the only one */
 try { if(window.jQuery) jQuery(document).off('click', '#anGo'); } catch(e){}
 (function(){
@@ -255,6 +255,30 @@ function updateBadge(){
   for(var k in c){
     if(c.hasOwnProperty(k)) cnt += (c[k].q || 1);
   }
+
+  /* v9.17.0: Cross-validate with Konimbo's source of truth.
+     If Konimbo's jStorage cart is empty but ours has stale items,
+     clear ours. This handles the case where the user emptied the cart
+     in checkout (Konimbo cleared its storage) but our sessionStorage
+     still has the old items, causing a phantom badge count. */
+  try {
+    if(window.jQuery && window.jQuery.jStorage){
+      var konimboCart = window.jQuery.jStorage.get('cart_autonahariya');
+      var konimboHasItems = false;
+      if(typeof konimboCart === 'string' && konimboCart.length > 0){
+        konimboHasItems = /data-id=/.test(konimboCart) || /<tr[^>]*data-id/.test(konimboCart);
+      } else if(konimboCart && typeof konimboCart === 'object'){
+        for(var kk in konimboCart){ if(konimboCart.hasOwnProperty(kk)){ konimboHasItems = true; break; } }
+      }
+      if(!konimboHasItems && cnt > 0){
+        /* Konimbo says empty, we say items — trust Konimbo, wipe ours */
+        try { sessionStorage.removeItem(CK); } catch(ex){}
+        cnt = 0;
+        try { console.info('[an-cart] cleared stale sessionStorage (Konimbo cart empty)'); } catch(ex){}
+      }
+    }
+  } catch(e){}
+
   /* Update ALL possible badge selectors Konimbo uses */
   var badges = document.querySelectorAll(
     'span.cart_with_items_counter, .cart_count, #cart_count, ' +
@@ -263,6 +287,12 @@ function updateBadge(){
   );
   for(var i=0; i<badges.length; i++){
     badges[i].textContent = cnt;
+    /* Hide badge entirely when zero (avoids ghost "0" or stale numbers) */
+    if(cnt === 0){
+      badges[i].style.display = 'none';
+    } else {
+      badges[i].style.display = '';
+    }
   }
   return cnt;
 }
