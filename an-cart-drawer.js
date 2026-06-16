@@ -1,5 +1,5 @@
 /**
- * AN Cart Drawer — v9.15.0 (Neutralize legacy secure.konimbo.co.il cart link causing 404)
+ * AN Cart Drawer — v9.16.0 (Multi-stage cart refresh; detects must-upgrade)
  * Auto Nahariya — Konimbo Platform
  * Clean professional design, integrated gift-by-cart-value system
  */
@@ -8,7 +8,7 @@
 if(window._anCartLoaded && !window._anCartForceReload) { /* Prevent double init */ }
 else {
 window._anCartLoaded = true;
-window._anCartVersion = '9.15.0';
+window._anCartVersion = '9.16.0';
 /* Unbind old #anGo handlers from previous version so our new one is the only one */
 try { if(window.jQuery) jQuery(document).off('click', '#anGo'); } catch(e){}
 (function(){
@@ -773,9 +773,30 @@ waitForJQuery(function($){
     afterAdd();
   }
 
-  /* jQuery delegated — all add-to-cart buttons */
+  /* jQuery delegated — all add-to-cart buttons.
+     v9.16.0: Multi-stage refresh (150/600/1500ms) to survive slow Konimbo AJAX.
+     Also detects btn_err_must_upgrade to avoid opening empty drawer. */
   $(document).on('click', 'a.commit_to_real, #big_cart_now, .fixed_buy_now', function(){
-    setTimeout(safeAfterAdd, 150);
+    var $btn = $(this);
+    /* Stage 1: quick open in case sync is already done */
+    setTimeout(function(){
+      /* If Konimbo flagged that variant/upgrade is required, surface that
+         instead of opening an empty drawer. */
+      if($btn.hasClass('btn_err_must_upgrade') || $btn.hasClass('btn_err')){
+        try { console.warn('[an-cart] add-to-cart blocked: variant/upgrade required'); } catch(e){}
+        _userClickedAdd = false;
+        return;
+      }
+      safeAfterAdd();
+    }, 150);
+    /* Stage 2: re-sync after Konimbo AJAX likely returned */
+    setTimeout(function(){
+      try { refresh(); updateBadge(); } catch(e){}
+    }, 600);
+    /* Stage 3: final reconciliation for slow networks */
+    setTimeout(function(){
+      try { refresh(); updateBadge(); } catch(e){}
+    }, 1500);
   });
 
   /* Patch global Konimbo add-to-cart — only if user clicked the button */
@@ -785,6 +806,9 @@ waitForJQuery(function($){
       window[fn] = function(){
         var r = orig.apply(this, arguments);
         setTimeout(safeAfterAdd, 300);
+        /* Also re-sync at later stages */
+        setTimeout(function(){ try { refresh(); updateBadge(); } catch(e){} }, 800);
+        setTimeout(function(){ try { refresh(); updateBadge(); } catch(e){} }, 1800);
         return r;
       };
     }
