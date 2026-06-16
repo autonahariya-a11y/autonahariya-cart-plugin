@@ -1,5 +1,5 @@
 /**
- * AN Cart Drawer — v9.13.0 (Include single_access_token in form POST so Konimbo session is created properly)
+ * AN Cart Drawer — v9.14.0 (Global cart-click capture; fixes duplicate ID + race condition causing 404 page)
  * Auto Nahariya — Konimbo Platform
  * Clean professional design, integrated gift-by-cart-value system
  */
@@ -8,7 +8,7 @@
 if(window._anCartLoaded && !window._anCartForceReload) { /* Prevent double init */ }
 else {
 window._anCartLoaded = true;
-window._anCartVersion = '9.13.0';
+window._anCartVersion = '9.14.0';
 /* Unbind old #anGo handlers from previous version so our new one is the only one */
 try { if(window.jQuery) jQuery(document).off('click', '#anGo'); } catch(e){}
 (function(){
@@ -283,11 +283,46 @@ function attachCartIconCapture(openFn){
     'a.cart[href*="konimbo"]',
     'a.cart[href*="orders"]',
     '#link_order_with_counter',
+    'a#link_order_with_counter',
+    'a[data-anh-cart]',
     /* Mobile: nah-bar custom cart icon */
     '.nah-icon.nah-ct',
     '.nah-ct',
     'a.nah-ct'
   ];
+
+  /* Global document-level capture: catches ANY cart-like click that wasn't
+     attached to (handles race conditions, new buttons injected later, and
+     the duplicate id="link_order_with_counter" issue) */
+  document.addEventListener('click', function(e){
+    var t = e.target;
+    while(t && t !== document.body){
+      if(t.nodeType === 1){
+        var isCart =
+          (t.id === 'link_order_with_counter') ||
+          (t.classList && (t.classList.contains('nah-ct') || (t.classList.contains('cart') && t.tagName === 'A'))) ||
+          (t.getAttribute && t.getAttribute('data-anh-cart') === '1') ||
+          (t.tagName === 'A' && t.href && /\/orders\/autonahariya\/new(?!\?)/.test(t.href));
+        if(isCart){
+          /* Make sure it's not inside a product card add-to-cart or similar */
+          var inProductCard = false;
+          var p = t.parentNode;
+          while(p && p !== document.body){
+            if(p.classList && (p.classList.contains('product') || p.classList.contains('item-card'))){ inProductCard = true; break; }
+            p = p.parentNode;
+          }
+          if(!inProductCard){
+            e.preventDefault();
+            e.stopImmediatePropagation();
+            e.stopPropagation();
+            try { openFn(); } catch(ex){}
+            return false;
+          }
+        }
+      }
+      t = t.parentNode;
+    }
+  }, true /* capture */);
 
   var attachedSet = [];
 
