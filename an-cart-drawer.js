@@ -1,5 +1,5 @@
 /**
- * AN Cart Drawer — v9.18.1 (Compact strip + accordion; hide scrollbars)
+ * AN Cart Drawer — v9.18.2 (Blue strip + always-closed accordion + progress on top)
  * Auto Nahariya — Konimbo Platform
  * Clean professional design, integrated gift-by-cart-value system
  */
@@ -8,7 +8,7 @@
 if(window._anCartLoaded && !window._anCartForceReload) { /* Prevent double init */ }
 else {
 window._anCartLoaded = true;
-window._anCartVersion = '9.18.1';
+window._anCartVersion = '9.18.2';
 /* Unbind old #anGo handlers from previous version so our new one is the only one */
 try { if(window.jQuery) jQuery(document).off('click', '#anGo'); } catch(e){}
 (function(){
@@ -1066,15 +1066,7 @@ waitForJQuery(function($){
     var pct = Math.min(100, (total / maxTh) * 100);
     var curId = cur ? cur.id : null;
 
-    /* v9.18.0: פתיחה אוטומטית רק כשמגיעים לטיר חדש והמשתמש לא התערב.
-       אחרי שהמשתמש בחר מתנה האקורדיון נשאר סגור כדי לא להסתיר את המוצרים. */
-    if(curId && curId !== lastTierId && !giftUserToggled){
-      var prevSel = loadGift();
-      /* פתח רק אם אין מתנה נבחרת לטיר הזה */
-      if(!prevSel[curId]){
-        giftExpanded = true;
-      }
-    }
+    /* v9.18.2: האקורדיון תמיד סגור כברירת מחדל — המשתמש לוחץ כדי לפתוח. */
     lastTierId = curId;
 
     /* v9.18.0: "משלוח חינם" הוסר מהסטריפ. הטקסט מתמקד רק על המתנה. */
@@ -1094,15 +1086,24 @@ waitForJQuery(function($){
       l1 = 'מתנה חינם לבחירה';
       l2 = 'הוסיפו ' + fp(nxt.threshold - total) + ' וקבלו מתנה';
     } else if(cur && nxt){
-      l1 = selectedGiftName
-        ? '✓ ' + selectedGiftName
-        : cur.label + ' חינם לבחירה';
-      l2 = 'עוד ' + fp(nxt.threshold - total) + ' ל' + nxt.label;
+      if(selectedGiftName){
+        l1 = '✓ ' + selectedGiftName;
+        l2 = 'עוד ' + fp(nxt.threshold - total) + ' ל' + nxt.label + ' · לחץ להחלפה';
+      } else {
+        l1 = cur.label + ' חינם לבחירה';
+        l2 = cur.gifts.length + ' אפשרויות · לחץ לפתיחה';
+      }
     } else {
-      l1 = selectedGiftName
-        ? '✓ ' + selectedGiftName
-        : (cur ? cur.label + ' חינם לבחירה' : 'מתנת פרימיום');
-      l2 = 'זכית בכל המתנות 🎉';
+      if(selectedGiftName){
+        l1 = '✓ ' + selectedGiftName;
+        l2 = 'זכית בכל המתנות 🎉 · לחץ להחלפה';
+      } else if(cur){
+        l1 = cur.label + ' חינם לבחירה';
+        l2 = cur.gifts.length + ' אפשרויות · לחץ לפתיחה';
+      } else {
+        l1 = 'מתנת פרימיום';
+        l2 = 'זכית בכל המתנות 🎉';
+      }
     }
 
     var markersHTML = '';
@@ -1114,20 +1115,24 @@ waitForJQuery(function($){
                      '" style="right:' + rightPct + '%">' + TIER_ICONS[t.id] + '</div>';
     }
 
+    /* v9.18.2: סדר חדש — קודם פס התקדמות, אחריו סטריפ כחול עם אייקון מתנה. */
+    var giftIcon = cur ? TIER_ICONS[cur.id] : (nxt ? TIER_ICONS[nxt.id] : TIER_ICONS.tier1);
+    var hasGift = !!cur;
     var summaryHTML =
-      '<button class="ang-summary" type="button" aria-expanded="' + (giftExpanded ? 'true' : 'false') + '">' +
-        '<div class="ang-text">' +
-          '<div class="ang-l1">' + l1 + '</div>' +
-          '<div class="ang-l2">' + l2 + '</div>' +
-        '</div>' +
-        '<span class="ang-chev">' + ICONS.chev + '</span>' +
-      '</button>' +
       '<div class="ang-progress">' +
         '<div class="ang-track">' +
           '<div class="ang-fill" style="width:' + pct + '% !important;background:#3b82f6 !important;background-image:linear-gradient(90deg,#2563eb 0%,#3b82f6 50%,#60a5fa 100%) !important;"></div>' +
           '<div class="ang-markers">' + markersHTML + '</div>' +
         '</div>' +
-      '</div>';
+      '</div>' +
+      '<button class="ang-summary' + (hasGift ? ' has-gift' : '') + '" type="button" aria-expanded="' + (giftExpanded ? 'true' : 'false') + '">' +
+        '<span class="ang-chev">' + ICONS.chev + '</span>' +
+        '<div class="ang-text">' +
+          '<div class="ang-l1">' + l1 + '</div>' +
+          '<div class="ang-l2">' + l2 + '</div>' +
+        '</div>' +
+        '<span class="ang-gift-icon">' + giftIcon + '</span>' +
+      '</button>';
 
     var detailsHTML = giftExpanded ? renderGiftDetails(total, cur, nxt) : '';
 
