@@ -1,5 +1,5 @@
 /**
- * AN Cart Drawer — v9.18.2 (Blue strip + always-closed accordion + progress on top)
+ * AN Cart Drawer — v9.18.3 (Early cart-click intercept + window.anOpen exposed)
  * Auto Nahariya — Konimbo Platform
  * Clean professional design, integrated gift-by-cart-value system
  */
@@ -8,11 +8,69 @@
 if(window._anCartLoaded && !window._anCartForceReload) { /* Prevent double init */ }
 else {
 window._anCartLoaded = true;
-window._anCartVersion = '9.18.2';
+window._anCartVersion = '9.18.3';
 /* Unbind old #anGo handlers from previous version so our new one is the only one */
 try { if(window.jQuery) jQuery(document).off('click', '#anGo'); } catch(e){}
 (function(){
 'use strict';
+
+/* =====================================================================
+   EARLY CART CLICK INTERCEPT — runs IMMEDIATELY (before jQuery loads)
+   Prevents navigation to /customer_basket if user clicks cart icon
+   before the drawer DOM is built. Queued clicks are flushed when ready.
+   ===================================================================== */
+window._anCartClickQueue = window._anCartClickQueue || [];
+window._anCartReady = false;
+
+function _anIsCartClick(t){
+  while(t && t !== document.body && t.nodeType === 1){
+    if(t.id === 'link_order_with_counter') return true;
+    if(t.classList){
+      if(t.classList.contains('nah-ct')) return true;
+      if(t.classList.contains('cart') && t.tagName === 'A') return true;
+    }
+    if(t.getAttribute && t.getAttribute('data-anh-cart') === '1') return true;
+    if(t.tagName === 'A' && t.href){
+      if(/secure\.konimbo\.co\.il.*\/(orders|cart)/i.test(t.href)) return true;
+      if(/\/orders\/autonahariya\/new/.test(t.href)) return true;
+      if(/\/customer_basket/.test(t.href)) return true;
+    }
+    /* Skip if inside a product card add-to-cart */
+    if(t.classList && (t.classList.contains('product') || t.classList.contains('item-card'))) return false;
+    t = t.parentNode;
+  }
+  return false;
+}
+
+document.addEventListener('click', function(e){
+  if(!_anIsCartClick(e.target)) return;
+  /* If drawer ready, let the main handler run */
+  if(window._anCartReady && document.getElementById('anD')){
+    /* Block native nav so main handler (which also captures) gets clean shot */
+    var anD = document.getElementById('anD');
+    var anO = document.getElementById('anO');
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    e.stopPropagation();
+    if(anD.classList.contains('op')){
+      anD.classList.remove('op');
+      if(anO) anO.classList.remove('v');
+      document.body.style.overflow = '';
+    } else {
+      anD.classList.add('op');
+      if(anO) anO.classList.add('v');
+      document.body.style.overflow = 'hidden';
+      if(typeof window.anOpen === 'function'){ try { window.anOpen(); } catch(ex){} }
+    }
+    return false;
+  }
+  /* Drawer not ready yet — block navigation and queue the click */
+  e.preventDefault();
+  e.stopImmediatePropagation();
+  e.stopPropagation();
+  window._anCartClickQueue.push(Date.now());
+  return false;
+}, true /* capture phase — runs before any other handler */);
 
 /* =====================================================================
    CONFIG
@@ -477,6 +535,9 @@ waitForJQuery(function($){
 
   $('body').append(dH);
 
+  /* Mark drawer ready and flush queued clicks from early intercept */
+  window._anCartReady = true;
+
   /* ----------------------------------------------------------------
      CORE REFRESH
      ---------------------------------------------------------------- */
@@ -609,6 +670,15 @@ waitForJQuery(function($){
     $('#anD').removeClass('op');
     $('#anO').removeClass('v');
     $('body').css('overflow', '');
+  }
+  /* Expose for external/fallback scripts and the early intercept */
+  window.anOpen = anOpen;
+  window.anClose = anClose;
+
+  /* Flush any cart clicks that happened before the drawer was built */
+  if(window._anCartClickQueue && window._anCartClickQueue.length){
+    window._anCartClickQueue.length = 0;
+    setTimeout(function(){ try { anOpen(); } catch(ex){} }, 50);
   }
 
   /* ----------------------------------------------------------------
