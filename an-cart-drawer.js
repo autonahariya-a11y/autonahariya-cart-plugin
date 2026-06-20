@@ -1,5 +1,5 @@
 /**
- * AN Cart Drawer — v9.18.5 (Replace button on green strip + spacing fix)
+ * AN Cart Drawer — v9.18.6 (Free shipping mention in strip text)
  * Auto Nahariya — Konimbo Platform
  * Clean professional design, integrated gift-by-cart-value system
  */
@@ -8,7 +8,7 @@
 if(window._anCartLoaded && !window._anCartForceReload) { /* Prevent double init */ }
 else {
 window._anCartLoaded = true;
-window._anCartVersion = '9.18.5';
+window._anCartVersion = '9.18.6';
 /* Unbind old #anGo handlers from previous version so our new one is the only one */
 try { if(window.jQuery) jQuery(document).off('click', '#anGo'); } catch(e){}
 (function(){
@@ -1151,27 +1151,27 @@ waitForJQuery(function($){
     var l1, l2;
     if(!cur && !nxt){
       l1 = 'הוסיפו מוצרים למתנה חינם';
-      l2 = 'הוסיפו ' + fp(GIFT_TIERS[0].threshold) + ' וקבלו מתנה';
+      l2 = 'הוסיפו ' + fp(GIFT_TIERS[0].threshold) + ' וקבלו מתנה + משלוח חינם';
     } else if(!cur && nxt){
-      l1 = 'מתנה חינם לבחירה';
-      l2 = 'הוסיפו ' + fp(nxt.threshold - total) + ' וקבלו מתנה';
+      l1 = 'מתנה חינם + משלוח חינם';
+      l2 = 'הוסיפו ' + fp(nxt.threshold - total) + ' וקבלו מתנה + משלוח חינם';
     } else if(cur && nxt){
       if(selectedGiftName){
         l1 = '✓ ' + selectedGiftName;
-        l2 = 'המתנה שלך · תתווסף לעגלה';
+        l2 = 'המתנה שלך · משלוח חינם';
       } else {
-        l1 = cur.label + ' חינם לבחירה';
+        l1 = cur.label + ' חינם + משלוח חינם';
         l2 = cur.gifts.length + ' אפשרויות · לחץ לפתיחה';
       }
     } else {
       if(selectedGiftName){
         l1 = '✓ ' + selectedGiftName;
-        l2 = 'המתנה שלך · תתווסף לעגלה';
+        l2 = 'המתנה שלך · משלוח חינם';
       } else if(cur){
-        l1 = cur.label + ' חינם לבחירה';
+        l1 = cur.label + ' חינם + משלוח חינם';
         l2 = cur.gifts.length + ' אפשרויות · לחץ לפתיחה';
       } else {
-        l1 = 'מתנת פרימיום';
+        l1 = 'מתנת פרימיום + משלוח חינם';
         l2 = 'זכית בכל המתנות 🎉';
       }
     }
