@@ -1,5 +1,5 @@
 /**
- * AN Cart Drawer — v9.17.0 (Sync badge with Konimbo truth; clear stale cart)
+ * AN Cart Drawer — v9.18.0 (Compact strip + accordion; no "משלוח חינם" in strip)
  * Auto Nahariya — Konimbo Platform
  * Clean professional design, integrated gift-by-cart-value system
  */
@@ -8,7 +8,7 @@
 if(window._anCartLoaded && !window._anCartForceReload) { /* Prevent double init */ }
 else {
 window._anCartLoaded = true;
-window._anCartVersion = '9.17.0';
+window._anCartVersion = '9.18.0';
 /* Unbind old #anGo handlers from previous version so our new one is the only one */
 try { if(window.jQuery) jQuery(document).off('click', '#anGo'); } catch(e){}
 (function(){
@@ -1066,25 +1066,43 @@ waitForJQuery(function($){
     var pct = Math.min(100, (total / maxTh) * 100);
     var curId = cur ? cur.id : null;
 
-    /* Auto-expand on tier upgrade */
+    /* v9.18.0: פתיחה אוטומטית רק כשמגיעים לטיר חדש והמשתמש לא התערב.
+       אחרי שהמשתמש בחר מתנה האקורדיון נשאר סגור כדי לא להסתיר את המוצרים. */
     if(curId && curId !== lastTierId && !giftUserToggled){
-      giftExpanded = true;
+      var prevSel = loadGift();
+      /* פתח רק אם אין מתנה נבחרת לטיר הזה */
+      if(!prevSel[curId]){
+        giftExpanded = true;
+      }
     }
     lastTierId = curId;
 
+    /* v9.18.0: "משלוח חינם" הוסר מהסטריפ. הטקסט מתמקד רק על המתנה. */
+    var sel = loadGift();
+    var selectedGiftName = null;
+    if(cur && sel[cur.id]){
+      for(var sgi=0; sgi<cur.gifts.length; sgi++){
+        if(cur.gifts[sgi].id === sel[cur.id]){ selectedGiftName = cur.gifts[sgi].name; break; }
+      }
+    }
+
     var l1, l2;
     if(!cur && !nxt){
-      l1 = 'הוסף מוצרים לעגלה';
-      l2 = 'הוסיפו ' + fp(GIFT_TIERS[0].threshold) + ' למשלוח חינם ומתנה';
+      l1 = 'הוסיפו מוצרים למתנה חינם';
+      l2 = 'הוסיפו ' + fp(GIFT_TIERS[0].threshold) + ' וקבלו מתנה';
     } else if(!cur && nxt){
-      l1 = 'הטבות לעגלה';
-      l2 = 'הוסיפו ' + fp(nxt.threshold - total) + ' למשלוח חינם ומתנה';
+      l1 = 'מתנה חינם לבחירה';
+      l2 = 'הוסיפו ' + fp(nxt.threshold - total) + ' וקבלו מתנה';
     } else if(cur && nxt){
-      l1 = cur.perks.join(' · ');
-      l2 = 'עוד ' + fp(nxt.threshold - total) + ' לשדרוג ל' + nxt.label;
+      l1 = selectedGiftName
+        ? '✓ ' + selectedGiftName
+        : cur.label + ' חינם לבחירה';
+      l2 = 'עוד ' + fp(nxt.threshold - total) + ' ל' + nxt.label;
     } else {
-      l1 = 'משלוח חינם · מתנת פרימיום';
-      l2 = 'זכית בכל ההטבות 🎉';
+      l1 = selectedGiftName
+        ? '✓ ' + selectedGiftName
+        : (cur ? cur.label + ' חינם לבחירה' : 'מתנת פרימיום');
+      l2 = 'זכית בכל המתנות 🎉';
     }
 
     var markersHTML = '';
