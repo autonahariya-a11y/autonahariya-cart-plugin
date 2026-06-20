@@ -1,5 +1,5 @@
 /**
- * AN Cart Drawer — v9.18.0 (Compact strip + accordion; no "משלוח חינם" in strip)
+ * AN Cart Drawer — v9.18.1 (Compact strip + accordion; hide scrollbars)
  * Auto Nahariya — Konimbo Platform
  * Clean professional design, integrated gift-by-cart-value system
  */
@@ -8,7 +8,7 @@
 if(window._anCartLoaded && !window._anCartForceReload) { /* Prevent double init */ }
 else {
 window._anCartLoaded = true;
-window._anCartVersion = '9.18.0';
+window._anCartVersion = '9.18.1';
 /* Unbind old #anGo handlers from previous version so our new one is the only one */
 try { if(window.jQuery) jQuery(document).off('click', '#anGo'); } catch(e){}
 (function(){
