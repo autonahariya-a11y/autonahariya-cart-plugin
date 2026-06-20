@@ -285,7 +285,7 @@
 }
 
 /* ============ פס התקדמות ============ v9.18.2: מעל הסטריפ הכחול */
-#anShip .ang-progress { padding: 18px 20px 14px !important; background: #ffffff !important; }
+#anShip .ang-progress { padding: 18px 20px 16px !important; background: #ffffff !important; margin-bottom: 10px !important; border-bottom: 1px solid #f1f5f9 !important; }
 #anShip .ang-track {
   position: relative !important;
   height: 8px !important;
@@ -536,6 +536,37 @@
   margin-bottom: 1px;
 }
 #anShip .ang-u-text span { color: var(--text-muted); }
+
+/* ============ v9.18.5: כפתור החלף + תמונת המתנה ============ */
+#anShip .ang-replace-btn {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  background: rgba(255,255,255,0.18) !important;
+  color: #ffffff !important;
+  padding: 6px 13px !important;
+  border-radius: 999px !important;
+  border: 1px solid rgba(255,255,255,0.25) !important;
+  flex-shrink: 0 !important;
+  position: relative !important;
+  z-index: 1 !important;
+  order: 1 !important;
+  transition: background .2s ease, transform .12s ease !important;
+  cursor: pointer !important;
+}
+#anShip .ang-summary:hover .ang-replace-btn { background: rgba(255,255,255,0.28) !important; }
+#anShip .ang-gift-icon.ang-selected-img {
+  background: #ffffff !important;
+  padding: 3px !important;
+}
+#anShip .ang-gift-icon.ang-selected-img img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain !important;
+  border-radius: 6px !important;
+}
 
 /* ============ v9.18.4: כפתור אשר בחירה ============ */
 #anShip .ang-confirm-btn {

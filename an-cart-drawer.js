@@ -1,5 +1,5 @@
 /**
- * AN Cart Drawer — v9.18.4 (Confirm button + green strip after confirmation)
+ * AN Cart Drawer — v9.18.5 (Replace button on green strip + spacing fix)
  * Auto Nahariya — Konimbo Platform
  * Clean professional design, integrated gift-by-cart-value system
  */
@@ -8,7 +8,7 @@
 if(window._anCartLoaded && !window._anCartForceReload) { /* Prevent double init */ }
 else {
 window._anCartLoaded = true;
-window._anCartVersion = '9.18.4';
+window._anCartVersion = '9.18.5';
 /* Unbind old #anGo handlers from previous version so our new one is the only one */
 try { if(window.jQuery) jQuery(document).off('click', '#anGo'); } catch(e){}
 (function(){
@@ -1158,7 +1158,7 @@ waitForJQuery(function($){
     } else if(cur && nxt){
       if(selectedGiftName){
         l1 = '✓ ' + selectedGiftName;
-        l2 = 'עוד ' + fp(nxt.threshold - total) + ' ל' + nxt.label + ' · לחץ להחלפה';
+        l2 = 'המתנה שלך · תתווסף לעגלה';
       } else {
         l1 = cur.label + ' חינם לבחירה';
         l2 = cur.gifts.length + ' אפשרויות · לחץ לפתיחה';
@@ -1166,7 +1166,7 @@ waitForJQuery(function($){
     } else {
       if(selectedGiftName){
         l1 = '✓ ' + selectedGiftName;
-        l2 = 'זכית בכל המתנות 🎉 · לחץ להחלפה';
+        l2 = 'המתנה שלך · תתווסף לעגלה';
       } else if(cur){
         l1 = cur.label + ' חינם לבחירה';
         l2 = cur.gifts.length + ' אפשרויות · לחץ לפתיחה';
@@ -1189,6 +1189,28 @@ waitForJQuery(function($){
     var giftIcon = cur ? TIER_ICONS[cur.id] : (nxt ? TIER_ICONS[nxt.id] : TIER_ICONS.tier1);
     /* v9.18.4: הסטריפ ירוק רק כשיש מתנה נבחרת (לא רק זכאות) — המשתמש לחץ על אשר בחירה */
     var hasGift = !!(cur && selectedGiftName);
+
+    /* v9.18.5: כשיש מתנה נבחרת — מציג תמונת המתנה במקום אייקון הסתמלי + כפתור החלף */
+    var selectedGiftImage = null;
+    if(cur && sel[cur.id]){
+      for(var sgj=0; sgj<cur.gifts.length; sgj++){
+        if(cur.gifts[sgj].id === sel[cur.id]){
+          selectedGiftImage = cur.gifts[sgj].image || null;
+          break;
+        }
+      }
+    }
+    var iconHTML;
+    if(hasGift && selectedGiftImage){
+      iconHTML = '<span class="ang-gift-icon ang-selected-img"><img src="' + selectedGiftImage + '" alt=""></span>';
+    } else {
+      iconHTML = '<span class="ang-gift-icon">' + giftIcon + '</span>';
+    }
+    /* כשיש has-gift, מחליפים את ה-chevron בכפתור "החלף" והלחיצה פותחת את האקורדיון */
+    var leadingHTML = hasGift
+      ? '<span class="ang-replace-btn">החלף</span>'
+      : '<span class="ang-chev">' + ICONS.chev + '</span>';
+
     var summaryHTML =
       '<div class="ang-progress">' +
         '<div class="ang-track">' +
@@ -1197,12 +1219,12 @@ waitForJQuery(function($){
         '</div>' +
       '</div>' +
       '<button class="ang-summary' + (hasGift ? ' has-gift' : '') + '" type="button" aria-expanded="' + (giftExpanded ? 'true' : 'false') + '">' +
-        '<span class="ang-chev">' + ICONS.chev + '</span>' +
+        leadingHTML +
         '<div class="ang-text">' +
           '<div class="ang-l1">' + l1 + '</div>' +
           '<div class="ang-l2">' + l2 + '</div>' +
         '</div>' +
-        '<span class="ang-gift-icon">' + giftIcon + '</span>' +
+        iconHTML +
       '</button>';
 
     var detailsHTML = giftExpanded ? renderGiftDetails(total, cur, nxt) : '';
