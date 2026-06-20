@@ -1,5 +1,5 @@
 /**
- * AN Cart Drawer — v9.18.3 (Early cart-click intercept + window.anOpen exposed)
+ * AN Cart Drawer — v9.18.4 (Confirm button + green strip after confirmation)
  * Auto Nahariya — Konimbo Platform
  * Clean professional design, integrated gift-by-cart-value system
  */
@@ -8,7 +8,7 @@
 if(window._anCartLoaded && !window._anCartForceReload) { /* Prevent double init */ }
 else {
 window._anCartLoaded = true;
-window._anCartVersion = '9.18.3';
+window._anCartVersion = '9.18.4';
 /* Unbind old #anGo handlers from previous version so our new one is the only one */
 try { if(window.jQuery) jQuery(document).off('click', '#anGo'); } catch(e){}
 (function(){
@@ -1187,7 +1187,8 @@ waitForJQuery(function($){
 
     /* v9.18.2: סדר חדש — קודם פס התקדמות, אחריו סטריפ כחול עם אייקון מתנה. */
     var giftIcon = cur ? TIER_ICONS[cur.id] : (nxt ? TIER_ICONS[nxt.id] : TIER_ICONS.tier1);
-    var hasGift = !!cur;
+    /* v9.18.4: הסטריפ ירוק רק כשיש מתנה נבחרת (לא רק זכאות) — המשתמש לחץ על אשר בחירה */
+    var hasGift = !!(cur && selectedGiftName);
     var summaryHTML =
       '<div class="ang-progress">' +
         '<div class="ang-track">' +
@@ -1267,6 +1268,11 @@ waitForJQuery(function($){
       ? 'תוכלו להחליף בכל רגע · המתנה תתווסף להזמנה בקופה'
       : 'המתנה תתווסף להזמנה אוטומטית בקופה';
 
+    /* v9.18.4: Confirm button — enabled only when a gift is selected, closes accordion */
+    var confirmReady = !!selectedGiftId;
+    var confirmBtn = '<button class="ang-confirm-btn' + (confirmReady ? ' ready' : '') + '" type="button"' +
+                     (confirmReady ? '' : ' disabled') + '>אשר בחירה</button>';
+
     return '<div class="ang-details">' +
              '<div class="ang-d-title">' + title + '</div>' +
              '<p class="ang-d-sub">' + subT + '</p>' +
@@ -1276,6 +1282,7 @@ waitForJQuery(function($){
                '<button class="ang-nav next" type="button" aria-label="הבא">' + ICONS.aL + '</button>' +
              '</div>' +
              hint +
+             confirmBtn +
            '</div>';
   }
 
@@ -1390,6 +1397,16 @@ waitForJQuery(function($){
     if(sel[tierId] === giftId) delete sel[tierId];
     else sel[tierId] = giftId;
     saveGift(sel);
+    refresh();
+  });
+
+  /* v9.18.4: Confirm selection closes accordion → reveals green strip */
+  $(document).on('click', '.ang-confirm-btn', function(e){
+    e.preventDefault();
+    e.stopPropagation();
+    if($(this).prop('disabled')) return;
+    giftExpanded = false;
+    giftUserToggled = true;
     refresh();
   });
 
