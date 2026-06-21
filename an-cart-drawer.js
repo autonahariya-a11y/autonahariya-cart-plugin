@@ -1,5 +1,5 @@
 /**
- * AN Cart Drawer — v9.18.6 (Free shipping mention in strip text)
+ * AN Cart Drawer — v9.18.7 (Disable intercept on checkout pages)
  * Auto Nahariya — Konimbo Platform
  * Clean professional design, integrated gift-by-cart-value system
  */
@@ -8,7 +8,7 @@
 if(window._anCartLoaded && !window._anCartForceReload) { /* Prevent double init */ }
 else {
 window._anCartLoaded = true;
-window._anCartVersion = '9.18.6';
+window._anCartVersion = '9.18.7';
 /* Unbind old #anGo handlers from previous version so our new one is the only one */
 try { if(window.jQuery) jQuery(document).off('click', '#anGo'); } catch(e){}
 (function(){
@@ -18,11 +18,30 @@ try { if(window.jQuery) jQuery(document).off('click', '#anGo'); } catch(e){}
    EARLY CART CLICK INTERCEPT — runs IMMEDIATELY (before jQuery loads)
    Prevents navigation to /customer_basket if user clicks cart icon
    before the drawer DOM is built. Queued clicks are flushed when ready.
+   v9.18.7: Skip entirely on checkout/order pages so payment buttons work.
    ===================================================================== */
 window._anCartClickQueue = window._anCartClickQueue || [];
 window._anCartReady = false;
 
+/* v9.18.7: Detect if current page is the Konimbo checkout / order page.
+   On these pages we must NOT intercept any clicks — payment buttons,
+   shipping selectors, and form submits all live under /orders/ paths. */
+function _anIsCheckoutPage(){
+  try {
+    var h = location.host || '';
+    var p = location.pathname || '';
+    if(/secure\.konimbo\.co\.il/i.test(h)) return true;
+    if(/^\/orders\//i.test(p)) return true;
+    if(/\/customer_basket/i.test(p)) return true;
+    if(/\/checkout/i.test(p)) return true;
+    if(/\/finish_cart/i.test(p)) return true;
+  } catch(ex){}
+  return false;
+}
+
 function _anIsCartClick(t){
+  /* v9.18.7: Never treat clicks as cart clicks on checkout pages */
+  if(_anIsCheckoutPage()) return false;
   while(t && t !== document.body && t.nodeType === 1){
     if(t.id === 'link_order_with_counter') return true;
     if(t.classList){
@@ -43,6 +62,8 @@ function _anIsCartClick(t){
 }
 
 document.addEventListener('click', function(e){
+  /* v9.18.7: Bail entirely on checkout pages */
+  if(_anIsCheckoutPage()) return;
   if(!_anIsCartClick(e.target)) return;
   /* If drawer ready, let the main handler run */
   if(window._anCartReady && document.getElementById('anD')){
@@ -363,6 +384,8 @@ updateBadge();
    Fixes Bug #2: Konimbo overrides our click handler
    ===================================================================== */
 function attachCartIconCapture(openFn){
+  /* v9.18.7: Do not attach any handlers on checkout/order pages */
+  if(typeof _anIsCheckoutPage === 'function' && _anIsCheckoutPage()) return;
   /* All selectors that might be the cart icon */
   var cartSelectors = [
     '#link_order_with_counter a',
