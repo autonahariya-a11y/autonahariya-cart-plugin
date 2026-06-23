@@ -1,5 +1,5 @@
 /**
- * AN Cart Drawer — v9.18.7 (Disable intercept on checkout pages)
+ * AN Cart Drawer — v9.18.8 (Pulse glow attention on gift strip)
  * Auto Nahariya — Konimbo Platform
  * Clean professional design, integrated gift-by-cart-value system
  */
@@ -8,7 +8,7 @@
 if(window._anCartLoaded && !window._anCartForceReload) { /* Prevent double init */ }
 else {
 window._anCartLoaded = true;
-window._anCartVersion = '9.18.7';
+window._anCartVersion = '9.18.8';
 /* Unbind old #anGo handlers from previous version so our new one is the only one */
 try { if(window.jQuery) jQuery(document).off('click', '#anGo'); } catch(e){}
 (function(){
@@ -1234,6 +1234,10 @@ waitForJQuery(function($){
       ? '<span class="ang-replace-btn">החלף</span>'
       : '<span class="ang-chev">' + ICONS.chev + '</span>';
 
+    /* v9.18.8: הדגשת pulse glow + חץ מהבהב כשיש טיר זמין אבל הלקוח לא בחר מתנה עדיין.
+       האפקט נעצר אוטומטית כשהמשתמש פותח את האקורדיון (aria-expanded="true") או מאשר בחירה (.has-gift) — הכל מטופל ב-CSS לפי הסלקטורים. */
+    var needsAttention = cur && !selectedGiftName;
+
     var summaryHTML =
       '<div class="ang-progress">' +
         '<div class="ang-track">' +
@@ -1241,7 +1245,7 @@ waitForJQuery(function($){
           '<div class="ang-markers">' + markersHTML + '</div>' +
         '</div>' +
       '</div>' +
-      '<button class="ang-summary' + (hasGift ? ' has-gift' : '') + '" type="button" aria-expanded="' + (giftExpanded ? 'true' : 'false') + '">' +
+      '<button class="ang-summary' + (hasGift ? ' has-gift' : '') + (needsAttention ? ' ang-attention' : '') + '" type="button" aria-expanded="' + (giftExpanded ? 'true' : 'false') + '">' +
         leadingHTML +
         '<div class="ang-text">' +
           '<div class="ang-l1">' + l1 + '</div>' +

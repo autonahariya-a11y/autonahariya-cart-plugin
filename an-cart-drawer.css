@@ -228,6 +228,52 @@
 #anShip .ang-summary.has-gift {
   background: linear-gradient(135deg, #065f46 0%, #047857 50%, #059669 100%) !important;
 }
+
+/* v9.18.8: Attention glow on the gift strip when a tier is reached but no
+   gift selected yet AND the accordion is closed. The pulse stops as soon as
+   the user opens the accordion or confirms a gift (.has-gift). */
+#anShip .ang-summary.ang-attention[aria-expanded="false"]:not(.has-gift) {
+  animation: ang-attention-glow 2s ease-in-out infinite !important;
+}
+@keyframes ang-attention-glow {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(59,130,246,0.55),
+                0 6px 18px rgba(30,58,138,0.28);
+  }
+  50% {
+    box-shadow: 0 0 0 12px rgba(59,130,246,0),
+                0 6px 18px rgba(30,58,138,0.28);
+  }
+}
+/* Blinking yellow arrow appended to l1 — only while attention is active */
+#anShip .ang-summary.ang-attention[aria-expanded="false"]:not(.has-gift) .ang-l1::after {
+  content: ' \2190';
+  display: inline-block;
+  color: #fde047;
+  font-weight: 900;
+  animation: ang-attention-arrow 1.2s ease-in-out infinite;
+}
+@keyframes ang-attention-arrow {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(-4px); }
+}
+/* Pause animations once the user interacts (hover/touch) to feel less noisy */
+#anShip .ang-summary.ang-attention:hover,
+#anShip .ang-summary.ang-attention:focus {
+  animation: none !important;
+}
+#anShip .ang-summary.ang-attention:hover .ang-l1::after,
+#anShip .ang-summary.ang-attention:focus .ang-l1::after {
+  animation: none !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  #anShip .ang-summary.ang-attention[aria-expanded="false"]:not(.has-gift) {
+    animation: none !important;
+  }
+  #anShip .ang-summary.ang-attention[aria-expanded="false"]:not(.has-gift) .ang-l1::after {
+    animation: none !important;
+  }
+}
 #anShip .ang-text { flex: 1 !important; min-width: 0 !important; }
 #anShip .ang-text { flex: 1; min-width: 0; position: relative; z-index: 1; }
 #anShip .ang-l1 {
