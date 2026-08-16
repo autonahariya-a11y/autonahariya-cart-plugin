@@ -8,7 +8,7 @@
 if(window._anCartLoaded && !window._anCartForceReload) { /* Prevent double init */ }
 else {
 window._anCartLoaded = true;
-window._anCartVersion = '9.18.8';
+window._anCartVersion = '9.18.9';
 /* Unbind old #anGo handlers from previous version so our new one is the only one */
 try { if(window.jQuery) jQuery(document).off('click', '#anGo'); } catch(e){}
 (function(){
@@ -838,13 +838,68 @@ waitForJQuery(function($){
     return {id:id, t:t, p:p, i:img, u:location.pathname};
   }
 
+  /* ------------------------------------------------------------------
+     v9.18.9 QTY FIX — read the quantity the shopper actually selected.
+     Konimbo (special_cart) keeps it in .product_quantity .amount_feed
+     input.counter; the custom product-page redesign keeps it in
+     #an-qty-val. Previously addFromPage() hard-coded 1, and because
+     refresh() skips ids already present in the drawer cart, that 1
+     overwrote whatever Konimbo had — so every add landed as a single unit.
+     ------------------------------------------------------------------ */
+  function _visible(el){
+    return !!(el && (el.offsetWidth || el.offsetHeight || el.getClientRects().length));
+  }
+  function getSelectedQty(){
+    var n = 0, el;
+
+    /* a. custom redesigned buy box */
+    el = document.getElementById('an-qty-val');
+    if(_visible(el)) n = parseInt((el.textContent || '').replace(/[^\d]/g, ''), 10);
+
+    /* b. Konimbo native counter on the product page */
+    if(!n){
+      var list = document.querySelectorAll('#item_details .product_quantity .amount_feed input.counter, #item_main .product_quantity .amount_feed input.counter, .product_quantity .amount_feed input.counter');
+      for(var i = 0; i < list.length; i++){
+        if(!_visible(list[i])) continue;
+        n = parseInt(list[i].value, 10);
+        if(n > 0) break;
+      }
+    }
+
+    /* c. mobile sticky bar clone */
+    if(!n){
+      el = document.querySelector('.fixed_buy_now .product_quantity .amount_feed input.counter');
+      if(el) n = parseInt(el.value, 10);
+    }
+
+    if(!n || isNaN(n) || n < 1) n = 1;
+    if(n > 999) n = 999;
+    return n;
+  }
+  window.__anSelQty = getSelectedQty;
+
+  /* After Konimbo commits an add it blanks .fake_counter, which re-adds
+     .zero_value to a.commit_to_real and makes the next click a no-op.
+     Put the selected quantity back (silently, no change event) so the
+     button stays live and every click adds again. */
+  function restoreQtyUI(qty){
+    try{
+      $('a.commit_to_real').removeClass('zero_value clicked btn_err');
+      $('span.zero_val_comment').remove();
+      $('.fake_quantity input.fake_counter').each(function(){ this.value = qty; });
+      $('.product_quantity .amount_feed input.counter').each(function(){ this.value = qty; });
+    }catch(e){}
+  }
+
   function addFromPage(){
     var prod = getProductFromPage();
     if(!prod) return;
+    var qty = getSelectedQty();
     var c = load();
-    if(c[prod.id]){ c[prod.id].q = (c[prod.id].q || 1) + 1; }
-    else { c[prod.id] = {t:prod.t, p:prod.p, q:1, i:prod.i, u:prod.u}; }
+    if(c[prod.id]){ c[prod.id].q = (c[prod.id].q || 1) + qty; }
+    else { c[prod.id] = {t:prod.t, p:prod.p, q:qty, i:prod.i, u:prod.u}; }
     save(c);
+    setTimeout(function(){ restoreQtyUI(qty); }, 700);
   }
 
   var isMobile = window.innerWidth <= 768;
@@ -856,13 +911,11 @@ waitForJQuery(function($){
     setTimeout(function(){$('#anAdded').css('transform','translate(-50%,-80px)')},2200);
   }
 
-  var _addDebounce = null;
   function afterAdd(){
-    /* Debounce — prevent double-add from multiple handlers firing */
-    if(_addDebounce) return;
-    _addDebounce = true;
-    setTimeout(function(){ _addDebounce = null; }, 800);
-
+    /* v9.18.9: the old 800ms debounce also swallowed a genuine second
+       click. De-duplication is already handled by _userClickedAdd, which
+       safeAfterAdd() clears before calling us, so only one of the
+       redundant handlers per real click can reach this point. */
     addFromPage();
     if(isMobile){
       setTimeout(function(){ refresh(); updateBadge(); showAddedToast(); }, 400);
