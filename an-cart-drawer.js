@@ -8,7 +8,7 @@
 if(window._anCartLoaded && !window._anCartForceReload) { /* Prevent double init */ }
 else {
 window._anCartLoaded = true;
-window._anCartVersion = '9.18.9';
+window._anCartVersion = '9.19.0';
 /* Unbind old #anGo handlers from previous version so our new one is the only one */
 try { if(window.jQuery) jQuery(document).off('click', '#anGo'); } catch(e){}
 (function(){
@@ -839,7 +839,7 @@ waitForJQuery(function($){
   }
 
   /* ------------------------------------------------------------------
-     v9.18.9 QTY FIX — read the quantity the shopper actually selected.
+     v9.18.9 / v9.19.0 QTY FIX — read the quantity the shopper actually selected.
      Konimbo (special_cart) keeps it in .product_quantity .amount_feed
      input.counter; the custom product-page redesign keeps it in
      #an-qty-val. Previously addFromPage() hard-coded 1, and because
@@ -849,27 +849,31 @@ waitForJQuery(function($){
   function _visible(el){
     return !!(el && (el.offsetWidth || el.offsetHeight || el.getClientRects().length));
   }
+  function _isProductPage(){
+    return !!(document.body && /(^|\s)layout_item(\s|$)/.test(document.body.className || ''));
+  }
+  /* Read the quantity the shopper selected. Only product-page controls are
+     consulted — never a category-grid counter, whose "add" button always
+     means a single unit. */
   function getSelectedQty(){
-    var n = 0, el;
+    var n = 0, el, i, list;
 
     /* a. custom redesigned buy box */
     el = document.getElementById('an-qty-val');
     if(_visible(el)) n = parseInt((el.textContent || '').replace(/[^\d]/g, ''), 10);
 
-    /* b. Konimbo native counter on the product page */
+    /* b. Konimbo native counter, in strict container priority */
     if(!n){
-      var list = document.querySelectorAll('#item_details .product_quantity .amount_feed input.counter, #item_main .product_quantity .amount_feed input.counter, .product_quantity .amount_feed input.counter');
-      for(var i = 0; i < list.length; i++){
-        if(!_visible(list[i])) continue;
-        n = parseInt(list[i].value, 10);
-        if(n > 0) break;
+      var scopes = ['#item_details', '#item_main', '#bg_middle', '.fixed_buy_now'];
+      for(var s = 0; s < scopes.length && !n; s++){
+        list = document.querySelectorAll(scopes[s] + ' .product_quantity .amount_feed input.counter');
+        for(i = 0; i < list.length; i++){
+          if(scopes[s] !== '.fixed_buy_now' && !_visible(list[i])) continue;
+          n = parseInt(list[i].value, 10);
+          if(n > 0) break;
+          n = 0;
+        }
       }
-    }
-
-    /* c. mobile sticky bar clone */
-    if(!n){
-      el = document.querySelector('.fixed_buy_now .product_quantity .amount_feed input.counter');
-      if(el) n = parseInt(el.value, 10);
     }
 
     if(!n || isNaN(n) || n < 1) n = 1;
@@ -877,6 +881,41 @@ waitForJQuery(function($){
     return n;
   }
   window.__anSelQty = getSelectedQty;
+
+  /* ------------------------------------------------------------------
+     v9.19.0 — capture the quantity ON THE CLICK ITSELF.
+     afterAdd() runs ~150ms after the click, and by then Konimbo (plus the
+     theme's own minimum-1 logic) has already reset input.counter back to 1,
+     so reading it there always produced 1. These capture-phase listeners
+     fire before any of the page's own handlers, while the field still holds
+     what the shopper picked.
+     ------------------------------------------------------------------ */
+  var ADD_SEL = 'a.commit_to_real, #big_cart_now, .fixed_buy_now, #an-add-to-cart, .buyNow.to_cart a';
+  var _qtyAtClick = 0, _qtyAtClickTs = 0;
+  function _captureQty(e){
+    try{
+      var t = e.target;
+      if(!t || !t.closest) return;
+      if(!t.closest(ADD_SEL)) return;
+      if(!_isProductPage()){ _qtyAtClick = 0; return; }
+      _qtyAtClick = getSelectedQty();
+      _qtyAtClickTs = Date.now();
+    }catch(err){}
+  }
+  try{
+    document.addEventListener('pointerdown', _captureQty, true);
+    document.addEventListener('touchstart', _captureQty, true);
+    document.addEventListener('click', _captureQty, true);
+  }catch(e){}
+
+  /* Quantity to credit for the current add. Falls back to a live read, and
+     to 1 outside the product page (category grids add one unit per click). */
+  function pickedQty(){
+    if(_qtyAtClick > 0 && (Date.now() - _qtyAtClickTs) < 8000) return _qtyAtClick;
+    if(!_isProductPage()) return 1;
+    return getSelectedQty();
+  }
+  window.__anPickedQty = pickedQty;
 
   /* After Konimbo commits an add it blanks .fake_counter, which re-adds
      .zero_value to a.commit_to_real and makes the next click a no-op.
@@ -886,15 +925,17 @@ waitForJQuery(function($){
     try{
       $('a.commit_to_real').removeClass('zero_value clicked btn_err');
       $('span.zero_val_comment').remove();
-      $('.fake_quantity input.fake_counter').each(function(){ this.value = qty; });
-      $('.product_quantity .amount_feed input.counter').each(function(){ this.value = qty; });
+      if(!_isProductPage()) return;
+      $('#item_details .fake_quantity input.fake_counter, #item_main .fake_quantity input.fake_counter, #bg_middle .fake_quantity input.fake_counter').each(function(){ this.value = qty; });
+      $('#item_details .product_quantity .amount_feed input.counter, #item_main .product_quantity .amount_feed input.counter, #bg_middle .product_quantity .amount_feed input.counter, .fixed_buy_now .product_quantity .amount_feed input.counter').each(function(){ this.value = qty; });
     }catch(e){}
   }
 
   function addFromPage(){
     var prod = getProductFromPage();
     if(!prod) return;
-    var qty = getSelectedQty();
+    var qty = pickedQty();
+    _qtyAtClick = 0;
     var c = load();
     if(c[prod.id]){ c[prod.id].q = (c[prod.id].q || 1) + qty; }
     else { c[prod.id] = {t:prod.t, p:prod.p, q:qty, i:prod.i, u:prod.u}; }
