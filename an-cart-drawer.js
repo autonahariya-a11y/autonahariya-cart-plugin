@@ -8,7 +8,7 @@
 if(window._anCartLoaded && !window._anCartForceReload) { /* Prevent double init */ }
 else {
 window._anCartLoaded = true;
-window._anCartVersion = '9.19.1';
+window._anCartVersion = '9.19.2';
 /* Unbind old #anGo handlers from previous version so our new one is the only one */
 try { if(window.jQuery) jQuery(document).off('click', '#anGo'); } catch(e){}
 (function(){
@@ -890,16 +890,52 @@ waitForJQuery(function($){
      fire before any of the page's own handlers, while the field still holds
      what the shopper picked.
      ------------------------------------------------------------------ */
+
+  /* ------------------------------------------------------------------
+     v9.19.2 — keep Konimbo's own cart in step with the drawer.
+     Konimbo's update_item() REPLACES a row's quantity, it never adds to
+     it. So a second add of 5 units left Konimbo's real cart back at 5
+     while the drawer displayed 10 — the shopper would have checked out
+     with the wrong amount. Write the cumulative total into the hidden
+     counter field during the capture phase, before Konimbo reads it, so
+     both sides land on the same number. The visible stepper is a
+     separate element, so what the shopper sees is untouched.
+     ------------------------------------------------------------------ */
+  var QTY_FIELDS = '#item_details .product_quantity .amount_feed input.counter,#item_main .product_quantity .amount_feed input.counter,#bg_middle .product_quantity .amount_feed input.counter,.fixed_buy_now .product_quantity .amount_feed input.counter';
+  function _cartItemId(){
+    var m = String(location.pathname).match(/\/items\/(\d+)/);
+    return m ? ('item_id_' + m[1]) : '';
+  }
+  function _absoluteQty(picked){
+    try{
+      var id = _cartItemId();
+      if(!id) return 0;
+      var c = load(), have = 0;
+      if(c[id] && !isDeleted(id)) have = parseInt(c[id].q, 10) || 0;
+      var total = have + picked;
+      if(total > 999) total = 999;
+      var f = document.querySelectorAll(QTY_FIELDS);
+      for(var i=0;i<f.length;i++){ f[i].value = total; }
+      return total;
+    }catch(e){ return 0; }
+  }
+
   var ADD_SEL = 'a.commit_to_real, #big_cart_now, .buyNow.to_cart a, .fixed_buy_now #big_cart_now, .fixed_buy_now #add_to_cart a, .fixed_buy_now .buyNow.to_cart a, #an-add-to-cart';
-  var _qtyAtClick = 0, _qtyAtClickTs = 0;
+  var _qtyAtClick = 0, _qtyAtClickTs = 0, _absAtClick = 0, _absAtClickTs = 0;
   function _captureQty(e){
     try{
       var t = e.target;
       if(!t || !t.closest) return;
       if(!t.closest(ADD_SEL)) return;
       if(!_isProductPage()){ _qtyAtClick = 0; return; }
+      /* pointerdown and click both fire for one tap. Only the first one
+         may read the field: _absoluteQty() writes the running total into
+         it, so a second read would compound (5 -> 10 -> 15). */
+      if(_qtyAtClick > 0 && (Date.now() - _qtyAtClickTs) < 1200) return;
       _qtyAtClick = getSelectedQty();
       _qtyAtClickTs = Date.now();
+      _absAtClick = _absoluteQty(_qtyAtClick);
+      _absAtClickTs = _qtyAtClickTs;
     }catch(err){}
   }
   try{
@@ -935,11 +971,13 @@ waitForJQuery(function($){
     var prod = getProductFromPage();
     if(!prod) return;
     var qty = pickedQty();
-    _qtyAtClick = 0;
+    var abs = (_absAtClick > 0 && (Date.now() - _absAtClickTs) < 8000) ? _absAtClick : 0;
+    _qtyAtClick = 0; _absAtClick = 0;
     var c = load();
-    if(c[prod.id]){ c[prod.id].q = (c[prod.id].q || 1) + qty; }
-    else { c[prod.id] = {t:prod.t, p:prod.p, q:qty, i:prod.i, u:prod.u}; }
+    if(c[prod.id]){ c[prod.id].q = abs || ((c[prod.id].q || 1) + qty); }
+    else { c[prod.id] = {t:prod.t, p:prod.p, q:(abs || qty), i:prod.i, u:prod.u}; }
     save(c);
+    _lastAddTs = Date.now();
     setTimeout(function(){ restoreQtyUI(qty); }, 700);
   }
 
@@ -951,6 +989,33 @@ waitForJQuery(function($){
     $('#anAdded').css('transform','translate(-50%,0)');
     setTimeout(function(){$('#anAdded').css('transform','translate(-50%,-80px)')},2200);
   }
+
+  /* ------------------------------------------------------------------
+     v9.19.2 — suppress the theme's stray "added to cart" toast.
+     The store's mobile header code shows its own #x-toast from a loose
+     click handler that also matches the quantity stepper cloned into the
+     sticky buy bar, so changing quantity announced an add that never
+     happened. That code lives in the Konimbo template, so it is muted
+     from here: if the toast lights up without a real add, drop it.
+     ------------------------------------------------------------------ */
+  var _lastAddTs = 0;
+  (function guardForeignToast(){
+    function attach(){
+      var t = document.getElementById('x-toast');
+      if(!t || t.__anGuarded) return;
+      t.__anGuarded = true;
+      function check(){
+        if(t.classList.contains('x-show') && (Date.now() - _lastAddTs) > 2500){
+          t.classList.remove('x-show');
+        }
+      }
+      try{ new MutationObserver(check).observe(t, {attributes:true, attributeFilter:['class']}); }catch(e){}
+      check();
+    }
+    attach();
+    var iv = setInterval(attach, 700);
+    setTimeout(function(){ clearInterval(iv); }, 60000);
+  })();
 
   function afterAdd(){
     /* v9.18.9: the old 800ms debounce also swallowed a genuine second
