@@ -8,7 +8,7 @@
 if(window._anCartLoaded && !window._anCartForceReload) { /* Prevent double init */ }
 else {
 window._anCartLoaded = true;
-window._anCartVersion = '9.19.0';
+window._anCartVersion = '9.19.1';
 /* Unbind old #anGo handlers from previous version so our new one is the only one */
 try { if(window.jQuery) jQuery(document).off('click', '#anGo'); } catch(e){}
 (function(){
@@ -890,7 +890,7 @@ waitForJQuery(function($){
      fire before any of the page's own handlers, while the field still holds
      what the shopper picked.
      ------------------------------------------------------------------ */
-  var ADD_SEL = 'a.commit_to_real, #big_cart_now, .fixed_buy_now, #an-add-to-cart, .buyNow.to_cart a';
+  var ADD_SEL = 'a.commit_to_real, #big_cart_now, .buyNow.to_cart a, .fixed_buy_now #big_cart_now, .fixed_buy_now #add_to_cart a, .fixed_buy_now .buyNow.to_cart a, #an-add-to-cart';
   var _qtyAtClick = 0, _qtyAtClickTs = 0;
   function _captureQty(e){
     try{
@@ -970,7 +970,11 @@ waitForJQuery(function($){
   var _userClickedAdd = false;
 
   /* Mark click on ANY real add-to-cart button across all page types */
-  $(document).on('click', 'a.commit_to_real, #big_cart_now, .fixed_buy_now, .buyNow.to_cart a', function(){
+  /* v9.19.1: never match the bare .fixed_buy_now wrapper — the sticky bar
+     also contains a clone of the +/- quantity control, so every quantity
+     click was being treated as an add (stray toast + drifting quantity).
+     Only the actual buttons inside it count. */
+  $(document).on('click', 'a.commit_to_real, #big_cart_now, .buyNow.to_cart a, .fixed_buy_now #big_cart_now, .fixed_buy_now #add_to_cart a, .fixed_buy_now .buyNow.to_cart a', function(){
     _userClickedAdd = true;
   });
   /* Category page: .add_item.quantity a (the "הוסף לסל" button in grid) */
@@ -993,7 +997,7 @@ waitForJQuery(function($){
   /* jQuery delegated — all add-to-cart buttons.
      v9.16.0: Multi-stage refresh (150/600/1500ms) to survive slow Konimbo AJAX.
      Also detects btn_err_must_upgrade to avoid opening empty drawer. */
-  $(document).on('click', 'a.commit_to_real, #big_cart_now, .fixed_buy_now', function(){
+  $(document).on('click', 'a.commit_to_real, #big_cart_now, .buyNow.to_cart a, .fixed_buy_now #big_cart_now, .fixed_buy_now #add_to_cart a, .fixed_buy_now .buyNow.to_cart a', function(){
     var $btn = $(this);
     /* Stage 1: quick open in case sync is already done */
     setTimeout(function(){
