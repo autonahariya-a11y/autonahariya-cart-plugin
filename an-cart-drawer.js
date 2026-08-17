@@ -8,7 +8,7 @@
 if(window._anCartLoaded && !window._anCartForceReload) { /* Prevent double init */ }
 else {
 window._anCartLoaded = true;
-window._anCartVersion = '9.19.3';
+window._anCartVersion = '9.19.4';
 /* Unbind old #anGo handlers from previous version so our new one is the only one */
 try { if(window.jQuery) jQuery(document).off('click', '#anGo'); } catch(e){}
 (function(){
@@ -920,6 +920,29 @@ waitForJQuery(function($){
     }catch(e){ return 0; }
   }
 
+
+  /* ------------------------------------------------------------------
+     v9.19.4 — tell a quantity click apart from an add click.
+     Konimbo builds the product-page stepper as
+       .product_quantity > .reduce_item.quantity a  /  .add_item.quantity a
+     which is the very same markup it uses for the one-click "+" adder in
+     category grids (.product_quantity.cart-add-btn). So on a product page
+     every press of "+" or "-" looked like an add and popped the toast,
+     while on a grid the "+" really is the add button and must keep it.
+     ------------------------------------------------------------------ */
+  function _isQtyOnlyClick(t){
+    try{
+      if(!t || !t.closest) return false;
+      /* the field itself and "-" are never an add, on any page type */
+      if(t.closest('.amount_feed, .reduce_item')) return true;
+      /* on the product page the stepper only picks a number; the add is
+         the separate a.commit_to_real button */
+      if(t.closest('.product_quantity') && _isProductPage()) return true;
+    }catch(e){}
+    return false;
+  }
+  window.__anQtyOnly = _isQtyOnlyClick;
+
   var ADD_SEL = 'a.commit_to_real, #big_cart_now, .buyNow.to_cart a, .fixed_buy_now #big_cart_now, .fixed_buy_now #add_to_cart a, .fixed_buy_now .buyNow.to_cart a, #an-add-to-cart';
   var _qtyAtClick = 0, _qtyAtClickTs = 0, _absAtClick = 0, _absAtClickTs = 0;
   function _captureQty(e){
@@ -927,6 +950,7 @@ waitForJQuery(function($){
       var t = e.target;
       if(!t || !t.closest) return;
       if(!t.closest(ADD_SEL)) return;
+      if(_isQtyOnlyClick(t)) return;
       if(!_isProductPage()){ _qtyAtClick = 0; return; }
       /* pointerdown and click both fire for one tap. Only the first one
          may read the field: _absoluteQty() writes the running total into
@@ -1016,6 +1040,7 @@ waitForJQuery(function($){
     try{
       var t = e.target;
       if(!t || !t.closest || !t.closest(MARK_SEL)) return;
+      if(_isQtyOnlyClick(t)) return;
       _lastAddTs = Date.now();
       try{ window.__anLastAdd = _lastAddTs; }catch(_e){}
       var y = window.pageYOffset || document.documentElement.scrollTop || 0;
@@ -1077,7 +1102,8 @@ waitForJQuery(function($){
     _userClickedAdd = true;
   });
   /* Category page: .add_item.quantity a (the "הוסף לסל" button in grid) */
-  $(document).on('click', '.cart-add-btn .add_item.quantity a, .grid .add_item.quantity a', function(){
+  $(document).on('click', '.cart-add-btn .add_item.quantity a, .grid .add_item.quantity a', function(e){
+    if(_isQtyOnlyClick(e.target)) return;
     _userClickedAdd = true;
     setTimeout(function(){
       refresh(); updateBadge();
