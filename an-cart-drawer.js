@@ -8,7 +8,7 @@
 if(window._anCartLoaded && !window._anCartForceReload) { /* Prevent double init */ }
 else {
 window._anCartLoaded = true;
-window._anCartVersion = '9.19.2';
+window._anCartVersion = '9.19.3';
 /* Unbind old #anGo handlers from previous version so our new one is the only one */
 try { if(window.jQuery) jQuery(document).off('click', '#anGo'); } catch(e){}
 (function(){
@@ -999,13 +999,47 @@ waitForJQuery(function($){
      from here: if the toast lights up without a real add, drop it.
      ------------------------------------------------------------------ */
   var _lastAddTs = 0;
+
+  /* ------------------------------------------------------------------
+     v9.19.3 — mark a real add the moment the button is pressed.
+     The theme's toast fires instantly in the bubble phase, while
+     _lastAddTs used to be written ~150ms later inside addFromPage(), so
+     the guard below saw "no add yet" and swallowed every legitimate
+     toast too. Stamping the click in the capture phase fixes that and
+     still leaves quantity-stepper clicks unmarked.
+     Also re-anchors the scroll position: Konimbo's own add handler jumps
+     the page to the top (the button is an href="#" anchor), which the
+     theme only compensates for on its own custom buttons.
+     ------------------------------------------------------------------ */
+  var MARK_SEL = 'a.commit_to_real, #big_cart_now, .buyNow.to_cart a, .fixed_buy_now #big_cart_now, .fixed_buy_now #add_to_cart a, .fixed_buy_now .buyNow.to_cart a, #an-add-to-cart, .cart-add-btn .add_item.quantity a, .grid .add_item.quantity a, .add_item.quantity a';
+  function _markRealAdd(e){
+    try{
+      var t = e.target;
+      if(!t || !t.closest || !t.closest(MARK_SEL)) return;
+      _lastAddTs = Date.now();
+      try{ window.__anLastAdd = _lastAddTs; }catch(_e){}
+      var y = window.pageYOffset || document.documentElement.scrollTop || 0;
+      if(y < 40) return;
+      var restore = function(){
+        try{
+          var now = window.pageYOffset || document.documentElement.scrollTop || 0;
+          if(Math.abs(now - y) > 30) window.scrollTo(0, y);
+        }catch(_e){}
+      };
+      [80, 200, 400, 700, 1100, 1600, 2200].forEach(function(ms){ setTimeout(restore, ms); });
+    }catch(err){}
+  }
+  try{
+    document.addEventListener('pointerdown', _markRealAdd, true);
+    document.addEventListener('click', _markRealAdd, true);
+  }catch(e){}
   (function guardForeignToast(){
     function attach(){
       var t = document.getElementById('x-toast');
       if(!t || t.__anGuarded) return;
       t.__anGuarded = true;
       function check(){
-        if(t.classList.contains('x-show') && (Date.now() - _lastAddTs) > 2500){
+        if(t.classList.contains('x-show') && Math.abs(Date.now() - _lastAddTs) > 3000){
           t.classList.remove('x-show');
         }
       }
